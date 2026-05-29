@@ -1,0 +1,7 @@
+services:
+  - type: worker
+    name: line-news-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python news_smart_v2.py
+    plan: free
