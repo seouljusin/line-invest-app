@@ -301,8 +301,9 @@ def send_telegram(bot_token, chat_id, message):
     except Exception as e:
         log(f"  [텔레그램] 오류: {str(e)[:50]}")
 
-def build_report(scored_news, keyword_ranking, now_str):
-    msg  = f"<b>[라인 뉴스 브리핑] {html.escape(now_str)}</b>\n\n"
+def build_report(scored_news, keyword_ranking, now_str, header):
+    # header: "💰 돈이 되는 특급속보" 또는 "📊 상위 검색순위 뉴스"
+    msg  = f"<b>{html.escape(header)}</b>\n<i>{html.escape(now_str)}</i>\n\n"
     if keyword_ranking:
         kw_str = ' | '.join([f"{html.escape(w)}({c})" for w,c in keyword_ranking[:5]])
         msg += f"<b>핵심 키워드</b>\n{kw_str}\n\n"
@@ -372,16 +373,21 @@ def run_cycle(cfg, sent_titles, cycle):
     for n in new_scored[:3]:
         log(f"  [{n['score']}점] {n['title'][:35]}")
 
-    # 발송 판단
+    # 발송 판단 — 종류에 따라 제목을 다르게
+    urgent = [n for n in new_scored if n['score'] >= 40]
     should_send = False
-    if [n for n in new_scored if n['score'] >= 40]:
+    header = None
+    if urgent:                                   # 40점 이상 = 돈이 되는 특급속보
         should_send = True
-    if cycle % 6 == 1:
+        header = "💰 돈이 되는 특급속보"
+    elif cycle % 6 == 1:                          # 30분마다 정기 = 상위 검색순위
         should_send = True
+        header = "📊 상위 검색순위 뉴스"
 
     if should_send and bot_token and chat_id and new_scored:
-        msg = build_report(new_scored, keyword_ranking, now_str)
+        msg = build_report(new_scored, keyword_ranking, now_str, header)
         send_telegram(bot_token, chat_id, msg)
+        log(f"  → 발송: {header}")
         for n in new_scored[:5]:
             sent_titles.add(n['title'])
 
