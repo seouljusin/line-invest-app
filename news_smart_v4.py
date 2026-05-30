@@ -1,18 +1,27 @@
 # -*- coding: utf-8 -*-
 """
 news_smart_v4.py
-라인투자자산운용 뉴스 스마트 시스템 v4
-- flush=True 추가 (클라우드 실시간 로그)
+라인투자자산운용 뉴스 스마트 시스템 v4 (수정판)
+- flush=True (클라우드 실시간 로그)
 - 환경변수 우선 읽기
 - RSS + 네이버API + DART 3중 수집
+[수정 내역]
+  (1) 구글뉴스 한글 URL 인코딩 → ascii 에러 해결
+  (2) 머니투데이 RSS 폐지 → 이데일리 주식뉴스로 교체
+  (3) 메인 루프 try/except → 한 사이클 실패해도 봇 안 죽음
+  (4) KST 시간 고정 → 서버가 UTC여도 시각/DART 날짜 정확
+  (5) 텔레그램 HTML escape → 특수문자(&,<,>) 발송 거부 방지
 """
-import os, sys, re, time, datetime
+import os, sys, re, time, datetime, html
 import requests
 from urllib.request import urlopen, Request
+from urllib.parse import quote                      # (1)
 from html import unescape
 from collections import Counter, defaultdict
 from email.utils import parsedate_to_datetime
 import xml.etree.ElementTree as ET
+
+KST = datetime.timezone(datetime.timedelta(hours=9))  # (4) 한국시간 고정
 
 # ── 환경변수 우선, config.env fallback
 def load_config():
@@ -68,7 +77,9 @@ RSS_FEEDS = [
     ('연합뉴스', 'https://www.yonhapnewstv.co.kr/category/news/economy/feed/'),
     ('한국경제', 'https://www.hankyung.com/feed/all-news'),
     ('매일경제', 'https://www.mk.co.kr/rss/30000001/'),
-    ('머니투데이', 'https://www.mt.co.kr/rss/rss.xml'),
+    # (2) 머니투데이 RSS 폐지(404) → 이데일리 주식뉴스로 교체.
+    #     혹시 이 주소도 죽으면 봇이 알아서 [RSS] 오류 한 줄 찍고 넘어감(무해).
+    ('이데일리_주식', 'http://rss.edaily.co.kr/stock_news.xml'),
     ('구글뉴스_반도체', 'https://news.google.com/rss/search?q=반도체+수주&hl=ko&gl=KR&ceid=KR:ko'),
     ('구글뉴스_AI', 'https://news.google.com/rss/search?q=AI+투자&hl=ko&gl=KR&ceid=KR:ko'),
     ('구글뉴스_바이오', 'https://news.google.com/rss/search?q=바이오+임상&hl=ko&gl=KR&ceid=KR:ko'),
@@ -111,7 +122,9 @@ def fetch_rss():
     headers = {'User-Agent': 'Mozilla/5.0'}
     for source, url in RSS_FEEDS:
         try:
-            req = Request(url, headers=headers)
+            # (1) 한글 등 비ASCII 문자를 퍼센트 인코딩 (URL 구조 문자는 보존)
+            safe_url = quote(url, safe="%/:=&?~#+!$,;'@()*[]")
+            req = Request(safe_url, headers=headers)
             content = urlopen(req, timeout=8).read()
             try:
                 root = ET.fromstring(content)
@@ -176,7 +189,7 @@ def fetch_dart(dart_key):
     if not dart_key:
         log("  [DART] 키 없음 스킵")
         return []
-    d = datetime.date.today()
+    d = datetime.datetime.now(KST).date()         # (4) KST 기준 오늘
     if d.weekday() == 5: d -= datetime.timedelta(days=1)
     if d.weekday() == 6: d -= datetime.timedelta(days=2)
     bgn = d.strftime('%Y%m%d')
@@ -277,20 +290,21 @@ def send_telegram(bot_token, chat_id, message):
     try:
         r = requests.post(
             f'https://api.telegram.org/bot{bot_token}/sendMessage',
-            json={'chat_id': chat_id, 'text': message, 'parse_mode': 'HTML'},
+            json={'chat_id': chat_id, 'text': message, 'parse_mode': 'HTML',
+                  'disable_web_page_preview': True},
             timeout=10
         )
         if r.status_code == 200:
             log("  [텔레그램] 발송 완료")
         else:
-            log(f"  [텔레그램] 오류: {r.status_code}")
+            log(f"  [텔레그램] 오류: {r.status_code} {r.text[:80]}")
     except Exception as e:
         log(f"  [텔레그램] 오류: {str(e)[:50]}")
 
 def build_report(scored_news, keyword_ranking, now_str):
-    msg  = f"<b>[라인 뉴스 브리핑] {now_str}</b>\n\n"
+    msg  = f"<b>[라인 뉴스 브리핑] {html.escape(now_str)}</b>\n\n"
     if keyword_ranking:
-        kw_str = ' | '.join([f"{w}({c})" for w,c in keyword_ranking[:5]])
+        kw_str = ' | '.join([f"{html.escape(w)}({c})" for w,c in keyword_ranking[:5]])
         msg += f"<b>핵심 키워드</b>\n{kw_str}\n\n"
     msg += "<b>주목 뉴스 (점수순)</b>"
     for i, n in enumerate(scored_news[:5], 1):
@@ -299,18 +313,81 @@ def build_report(scored_news, keyword_ranking, now_str):
         elif tw >= 0.8: time_tag = "🔵"
         elif tw >= 0.6: time_tag = "🟡"
         else:           time_tag = "⚪"
-        bonus_str = ' '.join(n['bonus'][:2]) if n['bonus'] else ''
-        theme_str = '/'.join(n['themes'][:2]) if n['themes'] else ''
-        msg += f"\n\n{i}. {time_tag} <b>{n['title'][:38]}</b>"
+        bonus_str = html.escape(' '.join(n['bonus'][:2]) if n['bonus'] else '')
+        theme_str = html.escape('/'.join(n['themes'][:2]) if n['themes'] else '')
+        title_safe = html.escape(n['title'][:38])           # (5) 제목 escape
+        msg += f"\n\n{i}. {time_tag} <b>{title_safe}</b>"
         msg += f"\n   점수:{n['score']} | {theme_str} | {bonus_str}"
         if n['themes']:
             stocks = get_theme_stocks(n['themes'])
             if stocks:
-                msg += f"\n   관련종목: {' '.join(stocks[:4])}"
+                msg += f"\n   관련종목: {html.escape(' '.join(stocks[:4]))}"
         if n.get('url'):
-            msg += f"\n   <a href='{n['url']}'>기사 보기</a>"
+            url_safe = html.escape(n['url'], quote=True)     # (5) URL escape
+            msg += f"\n   <a href='{url_safe}'>기사 보기</a>"
     msg += "\n\n<i>라인투자자산운용 | 투자판단은 본인책임</i>"
     return msg
+
+def run_cycle(cfg, sent_titles, cycle):
+    """한 번의 수집·점수·발송 사이클 (예외는 main에서 잡음)"""
+    dart_key  = cfg.get('DART_API_KEY', '')
+    naver_id  = cfg.get('NAVER_CLIENT_ID', '')
+    naver_sec = cfg.get('NAVER_CLIENT_SECRET', '')
+    bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
+    chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
+
+    now     = datetime.datetime.now(KST)              # (4) KST
+    now_str = now.strftime('%Y-%m-%d %H:%M')
+    log(f"[{now.strftime('%H:%M:%S')}] 체크 #{cycle}")
+
+    # 수집
+    all_news = []
+    all_news.extend(fetch_rss())
+    all_news.extend(fetch_naver_api(naver_id, naver_sec))
+    all_news.extend(fetch_dart(dart_key))
+
+    # 중복 제거
+    seen = set(); unique = []
+    for n in all_news:
+        if n['title'] not in seen:
+            seen.add(n['title']); unique.append(n)
+    all_news = unique
+    log(f"  전체 수집: {len(all_news)}건")
+
+    if not all_news:
+        log("  뉴스 없음")
+        return
+
+    # 키워드 추출
+    word_count, word_sources = extract_keywords(all_news)
+    keyword_ranking = [
+        (w, c) for w, c in word_count.most_common(10)
+        if c >= 3 and w not in STOPWORDS
+    ]
+    log(f"  키워드: {', '.join([f'{w}({c})' for w,c in keyword_ranking[:5]])}")
+
+    # 점수화
+    scored = score_news(all_news, word_count, word_sources)
+    new_scored = [n for n in scored if n['title'] not in sent_titles]
+    for n in new_scored[:3]:
+        log(f"  [{n['score']}점] {n['title'][:35]}")
+
+    # 발송 판단
+    should_send = False
+    if [n for n in new_scored if n['score'] >= 40]:
+        should_send = True
+    if cycle % 6 == 1:
+        should_send = True
+
+    if should_send and bot_token and chat_id and new_scored:
+        msg = build_report(new_scored, keyword_ranking, now_str)
+        send_telegram(bot_token, chat_id, msg)
+        for n in new_scored[:5]:
+            sent_titles.add(n['title'])
+
+    # 메모리 관리: 발송 기록이 너무 커지면 비움
+    if len(sent_titles) > 3000:
+        sent_titles.clear()
 
 def main():
     log("=" * 60)
@@ -320,15 +397,9 @@ def main():
     log("=" * 60)
 
     cfg = load_config()
-    dart_key  = cfg.get('DART_API_KEY', '')
-    naver_id  = cfg.get('NAVER_CLIENT_ID', '')
-    naver_sec = cfg.get('NAVER_CLIENT_SECRET', '')
-    bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
-    chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
-
-    log(f"  DART: {'OK' if dart_key else 'MISSING'}")
-    log(f"  네이버: {'OK' if naver_id else 'MISSING'}")
-    log(f"  텔레그램: {'OK' if bot_token else 'MISSING'}")
+    log(f"  DART: {'OK' if cfg.get('DART_API_KEY') else 'MISSING'}")
+    log(f"  네이버: {'OK' if cfg.get('NAVER_CLIENT_ID') else 'MISSING'}")
+    log(f"  텔레그램: {'OK' if cfg.get('TELEGRAM_BOT_TOKEN') else 'MISSING'}")
 
     sent_titles = set()
     cycle = 0
@@ -336,61 +407,11 @@ def main():
 
     while True:
         cycle += 1
-        now     = datetime.datetime.now()
-        now_str = now.strftime('%Y-%m-%d %H:%M')
-        log(f"[{now.strftime('%H:%M:%S')}] 체크 #{cycle}")
-
-        # 수집
-        all_news = []
-        rss_news = fetch_rss()
-        all_news.extend(rss_news)
-        api_news = fetch_naver_api(naver_id, naver_sec)
-        all_news.extend(api_news)
-        dart_news = fetch_dart(dart_key)
-        all_news.extend(dart_news)
-
-        # 중복 제거
-        seen = set(); unique = []
-        for n in all_news:
-            if n['title'] not in seen:
-                seen.add(n['title']); unique.append(n)
-        all_news = unique
-
-        log(f"  전체 수집: {len(all_news)}건")
-
-        if not all_news:
-            log("  뉴스 없음\n")
-            time.sleep(300)
-            continue
-
-        # 키워드 추출
-        word_count, word_sources = extract_keywords(all_news)
-        keyword_ranking = [
-            (w, c) for w, c in word_count.most_common(10)
-            if c >= 3 and w not in STOPWORDS
-        ]
-        log(f"  키워드: {', '.join([f'{w}({c})' for w,c in keyword_ranking[:5]])}")
-
-        # 점수화
-        scored = score_news(all_news, word_count, word_sources)
-        new_scored = [n for n in scored if n['title'] not in sent_titles]
-
-        for n in new_scored[:3]:
-            log(f"  [{n['score']}점] {n['title'][:35]}")
-
-        # 발송
-        should_send = False
-        urgent = [n for n in new_scored if n['score'] >= 40]
-        if urgent: should_send = True
-        if cycle % 6 == 1: should_send = True
-
-        if should_send and bot_token and chat_id:
-            msg = build_report(new_scored, keyword_ranking, now_str)
-            send_telegram(bot_token, chat_id, msg)
-            for n in new_scored[:5]:
-                sent_titles.add(n['title'])
-
-        log(f"  다음: 5분 후\n")
+        try:                                          # (3) 한 사이클 실패해도 봇은 계속
+            run_cycle(cfg, sent_titles, cycle)
+        except Exception as e:
+            log(f"  [사이클 오류] {type(e).__name__}: {str(e)[:120]}")
+        log("  다음: 5분 후\n")
         time.sleep(300)
 
 if __name__ == '__main__':
