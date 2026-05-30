@@ -11,8 +11,9 @@ news_smart_v4.py
   (3) 메인 루프 try/except → 한 사이클 실패해도 봇 안 죽음
   (4) KST 시간 고정 → 서버가 UTC여도 시각/DART 날짜 정확
   (5) 텔레그램 HTML escape → 특수문자(&,<,>) 발송 거부 방지
+  (6) [1단계] 키워드 급증률 계산 + 장전(08:00) 브리핑 → 오늘 주목 키워드 & 관련주
 """
-import os, sys, re, time, datetime, html
+import os, sys, re, time, datetime, html, json
 import requests
 from urllib.request import urlopen, Request
 from urllib.parse import quote                      # (1)
@@ -22,6 +23,14 @@ from email.utils import parsedate_to_datetime
 import xml.etree.ElementTree as ET
 
 KST = datetime.timezone(datetime.timedelta(hours=9))  # (4) 한국시간 고정
+
+# ── (6) 장전 브리핑 설정 ───────────────────────────────
+BRIEF_HOUR        = 8      # 브리핑 발송 시각(시). 장 시작(09:00) 전.
+BRIEF_MIN         = 0      # 브리핑 발송 시각(분)
+BRIEF_MIN_ARTICLES= 3      # 키워드가 오늘 최소 몇 개 기사에 떠야 후보로 인정
+BASELINE_DAYS     = 5      # 급증률 기준이 되는 '최근 며칠' 평균
+TOP_N_BRIEF       = 7      # 브리핑에 담을 키워드 수
+STATE_FILE        = os.environ.get('STATE_FILE', 'kw_state.json')  # 일별 키워드 누적 저장
 
 # ── 환경변수 우선, config.env fallback
 def load_config():
@@ -219,6 +228,10 @@ def fetch_dart(dart_key):
         log(f"  [DART] 오류: {str(e)[:50]}")
         return []
 
+def title_keywords(title):
+    """제목에서 키워드 집합 추출 (2글자 이상 한글/영대문자, 불용어 제외)"""
+    return {w for w in re.findall(r'[가-힣A-Z]{2,}', title) if w not in STOPWORDS}
+
 def extract_keywords(news_list):
     all_text = ' '.join([n['title'] for n in news_list])
     words = re.findall(r'[가-힣A-Z]{2,}', all_text)
@@ -226,10 +239,99 @@ def extract_keywords(news_list):
     word_count = Counter(words)
     word_sources = defaultdict(set)
     for n in news_list:
-        for w in set(re.findall(r'[가-힣A-Z]{2,}', n['title'])):
-            if w not in STOPWORDS:
-                word_sources[w].add(n['source'])
+        for w in title_keywords(n['title']):
+            word_sources[w].add(n['source'])
     return word_count, word_sources
+
+# ── (6) 급증률 상태 저장/로드 ───────────────────────────
+def load_state():
+    """일별 키워드 누적 상태를 파일에서 로드"""
+    state = {'daily': {}, 'last_briefing': ''}
+    try:
+        if os.path.exists(STATE_FILE):
+            with open(STATE_FILE, encoding='utf-8') as f:
+                state = json.load(f)
+    except Exception as e:
+        log(f"  [상태 로드 오류] {str(e)[:50]}")
+    state.setdefault('daily', {})        # {날짜: {'total': N, 'kw': {키워드:기사수}}}
+    state.setdefault('last_briefing', '')
+    return state
+
+def save_state(state):
+    try:
+        # 오래된 날짜는 정리 (최근 BASELINE_DAYS+3일만 보관)
+        days = sorted(state['daily'].keys())
+        for d in days[:-(BASELINE_DAYS + 3)]:
+            del state['daily'][d]
+        with open(STATE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(state, f, ensure_ascii=False)
+    except Exception as e:
+        log(f"  [상태 저장 오류] {str(e)[:50]}")
+
+def accumulate_daily(state, today, new_articles):
+    """오늘 새로 들어온 기사들의 키워드를 일별 누적에 더함 (기사 단위로 1회씩)"""
+    day = state['daily'].setdefault(today, {'total': 0, 'kw': {}})
+    for n in new_articles:
+        day['total'] += 1
+        for kw in title_keywords(n['title']):
+            day['kw'][kw] = day['kw'].get(kw, 0) + 1
+
+def compute_surges(state, today):
+    """오늘 키워드 비중 ÷ 최근 평균 비중 = 급증률. (키워드, 오늘기사수, 급증률, 기준유무) 리스트 반환"""
+    today_day = state['daily'].get(today)
+    if not today_day or today_day['total'] == 0:
+        return [], False
+    today_total = today_day['total']
+
+    # 기준일(과거) 데이터 모으기
+    past_dates = [d for d in sorted(state['daily'].keys()) if d < today][-BASELINE_DAYS:]
+    has_baseline = len(past_dates) >= 1
+
+    results = []
+    for kw, cnt in today_day['kw'].items():
+        if cnt < BRIEF_MIN_ARTICLES:
+            continue
+        today_share = cnt / today_total
+        if has_baseline:
+            shares = []
+            for d in past_dates:
+                dd = state['daily'][d]
+                if dd['total'] > 0:
+                    shares.append(dd['kw'].get(kw, 0) / dd['total'])
+            base_share = (sum(shares) / len(shares)) if shares else 0.0
+            # 기준 비중이 0이면(과거 거의 안 나옴) 신규 급등으로 크게 가중
+            ratio = (today_share / base_share) if base_share > 0 else (today_share * 100)
+        else:
+            ratio = today_share  # 기준 없으면 오늘 비중 자체로 정렬
+        results.append((kw, cnt, ratio))
+    results.sort(key=lambda x: x[2], reverse=True)
+    return results, has_baseline
+
+def kw_related_stocks(kw):
+    """키워드와 연관된 테마 종목 (Stage 2에서 본격 DB로 교체 예정)"""
+    themes = detect_theme(kw)
+    return get_theme_stocks(themes) if themes else []
+
+def build_briefing(surges, has_baseline, today):
+    msg = f"<b>📈 장전 브리핑 — 오늘 주목 키워드 &amp; 관련주</b>\n<i>{html.escape(today)} (장 시작 전)</i>\n\n"
+    if not surges:
+        msg += "오늘은 기준치를 넘는 급증 키워드가 없어요. (조용한 장)\n"
+        msg += "\n<i>라인투자자산운용 | 사실·재료 정리일 뿐, 투자판단은 본인책임</i>"
+        return msg
+    if not has_baseline:
+        msg += "<i>※ 기준 데이터 누적 중 — 며칠 더 쌓이면 '급증률'이 정확해져요.</i>\n\n"
+    for i, (kw, cnt, ratio) in enumerate(surges[:TOP_N_BRIEF], 1):
+        kw_s = html.escape(kw)
+        if has_baseline:
+            msg += f"{i}. <b>{kw_s}</b>  (기사 {cnt}건, 평소 대비 {ratio:.1f}배)"
+        else:
+            msg += f"{i}. <b>{kw_s}</b>  (오늘 기사 {cnt}건)"
+        stocks = kw_related_stocks(kw)
+        if stocks:
+            msg += f"\n   관련종목: {html.escape(' '.join(stocks[:4]))}"
+        msg += "\n"
+    msg += "\n<i>라인투자자산운용 | 사실·재료 정리일 뿐, 투자판단은 본인책임</i>"
+    return msg
 
 def detect_theme(title):
     detected = []
@@ -291,7 +393,7 @@ def send_telegram(bot_token, chat_id, message):
         r = requests.post(
             f'https://api.telegram.org/bot{bot_token}/sendMessage',
             json={'chat_id': chat_id, 'text': message, 'parse_mode': 'HTML',
-                  'disable_web_page_preview': True},
+                  'disable_web_page_preview': False},   # 이미지(링크 미리보기) 켜기
             timeout=10
         )
         if r.status_code == 200:
@@ -329,7 +431,25 @@ def build_report(scored_news, keyword_ranking, now_str, header):
     msg += "\n\n<i>라인투자자산운용 | 투자판단은 본인책임</i>"
     return msg
 
-def run_cycle(cfg, sent_titles, cycle):
+def maybe_send_briefing(cfg, state, now, today):
+    """평일 아침 BRIEF_HOUR시대에 하루 한 번 장전 브리핑 발송"""
+    bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
+    chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
+    if not (bot_token and chat_id):
+        return
+    if state.get('last_briefing') == today:      # 오늘 이미 발송
+        return
+    if now.weekday() >= 5:                        # 토(5)/일(6) = 장 없음
+        return
+    if now.hour != BRIEF_HOUR or now.minute < BRIEF_MIN:
+        return
+    surges, has_baseline = compute_surges(state, today)
+    msg = build_briefing(surges, has_baseline, today)
+    send_telegram(bot_token, chat_id, msg)
+    state['last_briefing'] = today
+    log(f"  → 발송: 📈 장전 브리핑 (키워드 {len(surges[:TOP_N_BRIEF])}개, 기준{'있음' if has_baseline else '누적중'})")
+
+def run_cycle(cfg, sent_titles, cycle, state, mem):
     """한 번의 수집·점수·발송 사이클 (예외는 main에서 잡음)"""
     dart_key  = cfg.get('DART_API_KEY', '')
     naver_id  = cfg.get('NAVER_CLIENT_ID', '')
@@ -338,8 +458,14 @@ def run_cycle(cfg, sent_titles, cycle):
     chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
 
     now     = datetime.datetime.now(KST)              # (4) KST
+    today   = now.strftime('%Y-%m-%d')
     now_str = now.strftime('%Y-%m-%d %H:%M')
     log(f"[{now.strftime('%H:%M:%S')}] 체크 #{cycle}")
+
+    # (6) 날짜 바뀌면 '오늘 본 기사' 집합 리셋
+    if mem.get('seen_date') != today:
+        mem['seen_date'] = today
+        mem['seen_today'] = set()
 
     # 수집
     all_news = []
@@ -355,44 +481,53 @@ def run_cycle(cfg, sent_titles, cycle):
     all_news = unique
     log(f"  전체 수집: {len(all_news)}건")
 
-    if not all_news:
+    if all_news:
+        # 키워드 추출
+        word_count, word_sources = extract_keywords(all_news)
+        keyword_ranking = [
+            (w, c) for w, c in word_count.most_common(10)
+            if c >= 3 and w not in STOPWORDS
+        ]
+        log(f"  키워드: {', '.join([f'{w}({c})' for w,c in keyword_ranking[:5]])}")
+
+        # 점수화
+        scored = score_news(all_news, word_count, word_sources)
+        new_scored = [n for n in scored if n['title'] not in sent_titles]
+        for n in new_scored[:3]:
+            log(f"  [{n['score']}점] {n['title'][:35]}")
+
+        # 발송 판단 — 종류에 따라 제목/담는 내용을 다르게
+        urgent = [n for n in new_scored if n['score'] >= 40]   # 40점 이상만 = 돈 되는 뉴스
+        should_send = False
+        header = None
+        send_list = []
+        if urgent:                                   # 특급속보: 40점 이상만 담음 (낮은 건 제외)
+            should_send = True
+            header = "💰 돈이 되는 경제뉴스 — 이 뉴스는 꼭 읽자!"
+            send_list = urgent
+        elif cycle % 6 == 1:                          # 정기: 점수 상관없이 상위 5개
+            should_send = True
+            header = "📊 상위 검색순위 뉴스"
+            send_list = new_scored
+
+        if should_send and bot_token and chat_id and send_list:
+            msg = build_report(send_list, keyword_ranking, now_str, header)
+            send_telegram(bot_token, chat_id, msg)
+            log(f"  → 발송: {header} ({len(send_list[:5])}건)")
+            for n in send_list[:5]:
+                sent_titles.add(n['title'])
+
+        # (6) 일별 키워드 누적 — 오늘 처음 보는 기사만 1회씩
+        new_articles = [n for n in all_news if n['title'] not in mem['seen_today']]
+        for n in new_articles:
+            mem['seen_today'].add(n['title'])
+        accumulate_daily(state, today, new_articles)
+    else:
         log("  뉴스 없음")
-        return
 
-    # 키워드 추출
-    word_count, word_sources = extract_keywords(all_news)
-    keyword_ranking = [
-        (w, c) for w, c in word_count.most_common(10)
-        if c >= 3 and w not in STOPWORDS
-    ]
-    log(f"  키워드: {', '.join([f'{w}({c})' for w,c in keyword_ranking[:5]])}")
-
-    # 점수화
-    scored = score_news(all_news, word_count, word_sources)
-    new_scored = [n for n in scored if n['title'] not in sent_titles]
-    for n in new_scored[:3]:
-        log(f"  [{n['score']}점] {n['title'][:35]}")
-
-    # 발송 판단 — 종류에 따라 제목/담는 내용을 다르게
-    urgent = [n for n in new_scored if n['score'] >= 40]   # 40점 이상만 = 돈 되는 뉴스
-    should_send = False
-    header = None
-    send_list = []
-    if urgent:                                   # 특급속보: 40점 이상만 담음 (낮은 건 제외)
-        should_send = True
-        header = "💰 돈이 되는 특급속보"
-        send_list = urgent
-    elif cycle % 6 == 1:                          # 정기: 점수 상관없이 상위 5개
-        should_send = True
-        header = "📊 상위 검색순위 뉴스"
-        send_list = new_scored
-
-    if should_send and bot_token and chat_id and send_list:
-        msg = build_report(send_list, keyword_ranking, now_str, header)
-        send_telegram(bot_token, chat_id, msg)
-        log(f"  → 발송: {header} ({len(send_list[:5])}건)")
-        for n in send_list[:5]:
-            sent_titles.add(n['title'])
+    # (6) 장전 브리핑 발송 체크 + 상태 저장
+    maybe_send_briefing(cfg, state, now, today)
+    save_state(state)
 
     # 메모리 관리: 발송 기록이 너무 커지면 비움
     if len(sent_titles) > 3000:
@@ -410,6 +545,10 @@ def main():
     log(f"  네이버: {'OK' if cfg.get('NAVER_CLIENT_ID') else 'MISSING'}")
     log(f"  텔레그램: {'OK' if cfg.get('TELEGRAM_BOT_TOKEN') else 'MISSING'}")
 
+    state = load_state()                       # (6) 일별 키워드 누적 로드
+    days = len(state.get('daily', {}))
+    log(f"  급증률 기준 데이터: {days}일치 보유")
+    mem = {'seen_date': '', 'seen_today': set()}
     sent_titles = set()
     cycle = 0
     log("\n  시작!\n")
@@ -417,7 +556,7 @@ def main():
     while True:
         cycle += 1
         try:                                          # (3) 한 사이클 실패해도 봇은 계속
-            run_cycle(cfg, sent_titles, cycle)
+            run_cycle(cfg, sent_titles, cycle, state, mem)
         except Exception as e:
             log(f"  [사이클 오류] {type(e).__name__}: {str(e)[:120]}")
         log("  다음: 5분 후\n")
