@@ -25,8 +25,8 @@ import xml.etree.ElementTree as ET
 KST = datetime.timezone(datetime.timedelta(hours=9))  # (4) 한국시간 고정
 
 # ── (6) 장전 브리핑 설정 ───────────────────────────────
-BRIEF_HOUR        = 8      # 브리핑 발송 시각(시). 장 시작(09:00) 전.
-BRIEF_MIN         = 0      # 브리핑 발송 시각(분)
+BRIEF_HOUR        = 7      # 브리핑 발송 시각(시). NXT 프리마켓(08:00) 전.
+BRIEF_MIN         = 40     # 브리핑 발송 시각(분) → 07:40
 BRIEF_MIN_ARTICLES= 3      # 키워드가 오늘 최소 몇 개 기사에 떠야 후보로 인정
 BASELINE_DAYS     = 5      # 급증률 기준이 되는 '최근 며칠' 평균
 TOP_N_BRIEF       = 7      # 브리핑에 담을 키워드 수
@@ -441,7 +441,11 @@ def maybe_send_briefing(cfg, state, now, today):
         return
     if now.weekday() >= 5:                        # 토(5)/일(6) = 장 없음
         return
-    if now.hour != BRIEF_HOUR or now.minute < BRIEF_MIN:
+    # 07:40부터 정규장 시작(09:00) 전까지: 이 구간 첫 사이클에 한 번 발송
+    now_min   = now.hour * 60 + now.minute
+    brief_min = BRIEF_HOUR * 60 + BRIEF_MIN       # 07:40 = 460
+    market_open_min = 9 * 60                       # 09:00 = 540
+    if not (brief_min <= now_min < market_open_min):
         return
     surges, has_baseline = compute_surges(state, today)
     msg = build_briefing(surges, has_baseline, today)
