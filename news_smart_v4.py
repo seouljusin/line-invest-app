@@ -373,22 +373,25 @@ def run_cycle(cfg, sent_titles, cycle):
     for n in new_scored[:3]:
         log(f"  [{n['score']}점] {n['title'][:35]}")
 
-    # 발송 판단 — 종류에 따라 제목을 다르게
-    urgent = [n for n in new_scored if n['score'] >= 40]
+    # 발송 판단 — 종류에 따라 제목/담는 내용을 다르게
+    urgent = [n for n in new_scored if n['score'] >= 40]   # 40점 이상만 = 돈 되는 뉴스
     should_send = False
     header = None
-    if urgent:                                   # 40점 이상 = 돈이 되는 특급속보
+    send_list = []
+    if urgent:                                   # 특급속보: 40점 이상만 담음 (낮은 건 제외)
         should_send = True
         header = "💰 돈이 되는 특급속보"
-    elif cycle % 6 == 1:                          # 30분마다 정기 = 상위 검색순위
+        send_list = urgent
+    elif cycle % 6 == 1:                          # 정기: 점수 상관없이 상위 5개
         should_send = True
         header = "📊 상위 검색순위 뉴스"
+        send_list = new_scored
 
-    if should_send and bot_token and chat_id and new_scored:
-        msg = build_report(new_scored, keyword_ranking, now_str, header)
+    if should_send and bot_token and chat_id and send_list:
+        msg = build_report(send_list, keyword_ranking, now_str, header)
         send_telegram(bot_token, chat_id, msg)
-        log(f"  → 발송: {header}")
-        for n in new_scored[:5]:
+        log(f"  → 발송: {header} ({len(send_list[:5])}건)")
+        for n in send_list[:5]:
             sent_titles.add(n['title'])
 
     # 메모리 관리: 발송 기록이 너무 커지면 비움
