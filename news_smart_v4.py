@@ -22,6 +22,13 @@ from collections import Counter, defaultdict
 from email.utils import parsedate_to_datetime
 import xml.etree.ElementTree as ET
 
+# (7) 관련주 DB — 있으면 쓰고, 없으면 기존 테마매핑으로 자동 폴백
+try:
+    import stock_db
+except Exception:
+    stock_db = None
+STOCK_DB = None   # main()에서 로드
+
 KST = datetime.timezone(datetime.timedelta(hours=9))  # (4) 한국시간 고정
 
 # ── (6) 장전 브리핑 설정 ───────────────────────────────
@@ -308,7 +315,11 @@ def compute_surges(state, today):
     return results, has_baseline
 
 def kw_related_stocks(kw):
-    """키워드와 연관된 테마 종목 (Stage 2에서 본격 DB로 교체 예정)"""
+    """키워드와 연관된 종목. (7) 관련주 DB 있으면 우선, 없으면 테마매핑 폴백"""
+    if STOCK_DB and stock_db:
+        hits = stock_db.match_keyword(STOCK_DB, kw, limit=5)
+        if hits:
+            return [h['name'] for h in hits]
     themes = detect_theme(kw)
     return get_theme_stocks(themes) if themes else []
 
@@ -552,6 +563,15 @@ def main():
     state = load_state()                       # (6) 일별 키워드 누적 로드
     days = len(state.get('daily', {}))
     log(f"  급증률 기준 데이터: {days}일치 보유")
+
+    global STOCK_DB                            # (7) 관련주 DB 로드
+    if stock_db:
+        STOCK_DB = stock_db.load_db()
+    if STOCK_DB:
+        log(f"  관련주 DB: 종목 {len(STOCK_DB['stocks'])} / 테마 {len(STOCK_DB['themes'])}")
+    else:
+        log("  관련주 DB: 없음 (테마매핑 폴백 사용)")
+
     mem = {'seen_date': '', 'seen_today': set()}
     sent_titles = set()
     cycle = 0
