@@ -518,7 +518,7 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             log(f"  [{n['score']}점] {n['title'][:35]}")
 
         # 발송 판단 — 종류에 따라 제목/담는 내용을 다르게
-        urgent = [n for n in new_scored if n['score'] >= 60]   # ★60점 이상만 = 돈이 반응한 뉴스 (중복 줄이려 40→60)
+        urgent = [n for n in new_scored if n['score'] >= 80]   # ★80점 이상만 = 돈이 반응한 뉴스 (60→80 상향)
         should_send = False
         header = None
         send_list = []
