@@ -415,8 +415,14 @@ def send_telegram(bot_token, chat_id, message):
         log(f"  [텔레그램] 오류: {str(e)[:50]}")
 
 def build_report(scored_news, keyword_ranking, now_str, header):
-    # header: "💰 돈이 되는 특급속보" 또는 "📊 상위 검색순위 뉴스"
-    msg  = f"<b>{html.escape(header)}</b>\n<i>{html.escape(now_str)}</i>\n\n"
+    # header: "* 돈이 반응한 뉴스 - 투자자필독 *" 또는 "📊 상위 검색순위 뉴스"
+    msg = ""
+    # ★ 맨 위 1등 뉴스 이미지 1장 띄우기 — 대표 링크를 보이지 않는 앵커로 상단에 삽입
+    #   (텔레그램은 메시지 첫 링크의 미리보기를 위에 보여줌. 구글뉴스 링크는 이미지 안 뜰 수 있음)
+    if scored_news and scored_news[0].get('url'):
+        top_url = html.escape(scored_news[0]['url'], quote=True)
+        msg += f"<a href='{top_url}'>\u200b</a>"   # \u200b = 보이지 않는 공백(앵커용)
+    msg += f"<b>{html.escape(header)}</b>\n<i>{html.escape(now_str)}</i>\n\n"
     if keyword_ranking:
         kw_str = ' | '.join([f"{html.escape(w)}({c})" for w,c in keyword_ranking[:5]])
         msg += f"<b>핵심 키워드</b>\n{kw_str}\n\n"
