@@ -111,6 +111,18 @@ SURGE_CONTEXT = [
 # 하위호환 — 전체 합친 리스트
 SURGE_KEYWORDS = SURGE_STRONG + SURGE_CONTEXT
 
+# ★ 블랙리스트 — 제목에 이게 있으면 SURGE라도 무조건 차단 (낚시·부정·잡주)
+BLACKLIST_KEYWORDS = [
+    # 낚시·회의성 제목
+    '매출 0원', '매출 0', '직행', '진짜?', '왜?', '진짜', '논란', '의혹',
+    '주의보', '주의', '경고', '경고음', '거품', '버블', '과열',
+    # 부정·하락 (급등주와 반대)
+    '급락', '폭락', '하한가', '추락', '곤두박질', '미끄', '하락 전환',
+    '상장폐지', '거래정지', '관리종목', '횡령', '배임', '분식',
+    # 회고·잡설
+    '왜 올랐나', '왜 떨어', '뒤늦게', '알고보니', '알고 보니',
+]
+
 STOPWORDS = {
     '기자','뉴스','특파원','기사','관련','이후','현재',
     '대한','통해','위해','따라','대해','이번','지난',
@@ -589,7 +601,14 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
 
         # 점수화
         scored = score_news(all_news, word_count, word_sources)
-        new_scored = [n for n in scored if n['title'] not in sent_titles]
+
+        # ★ 블랙리스트 사전 차단 — 낚시·부정·잡주 제목은 발송 후보에서 제외
+        def is_blacklisted(news):
+            title = news.get('title', '')
+            return any(bad in title for bad in BLACKLIST_KEYWORDS)
+
+        new_scored = [n for n in scored
+                      if n['title'] not in sent_titles and not is_blacklisted(n)]
         for n in new_scored[:3]:
             log(f"  [{n['score']}점] {n['title'][:35]}")
 
