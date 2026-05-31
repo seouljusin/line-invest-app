@@ -554,8 +554,12 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             title = news.get('title', '')
             return any(kw in title for kw in SURGE_KEYWORDS)
 
+        def has_bonus(news):
+            title = news.get('title', '')
+            return any(kw in title for kw in BONUS_KEYWORDS)
+
         urgent = [n for n in new_scored
-                  if n['score'] >= 80 or has_surge(n)]   # ★80점↑ 또는 급등키워드 = 둘 다 잡기
+                  if n['score'] >= 80 or has_surge(n)]   # ★80점↑ 또는 급등키워드
         should_send = False
         header = None
         send_list = []
@@ -563,10 +567,14 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             should_send = True
             header = "* 돈이 반응한 뉴스 - 투자자필독 *"
             send_list = urgent
-        elif cycle % 24 == 1:                         # ★정기: 2시간마다 상위 5개 (5분×24=2시간, 기존 30분에서 변경)
-            should_send = True
-            header = "📊 상위 검색순위 뉴스"
-            send_list = new_scored
+        elif cycle % 24 == 1:                         # ★정기: 2시간마다
+            # ★30점↑ OR 급등키워드 OR 보너스키워드 포함 = 확실한 재료만
+            filtered = [n for n in new_scored
+                        if n['score'] >= 30 or has_surge(n) or has_bonus(n)]
+            if filtered:
+                should_send = True
+                header = "📊 상위 검색순위 뉴스"
+                send_list = filtered
 
         if should_send and bot_token and chat_id and send_list:
             msg = build_report(send_list, keyword_ranking, now_str, header)
