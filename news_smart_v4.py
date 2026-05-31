@@ -94,24 +94,22 @@ BONUS_KEYWORDS = {
     '외국인':1, '기관':1, '매수':1, '투자':1, '지분':1,
 }
 
-# ★ 급등 키워드 — 점수 상관없이 무조건 알림 (중소형 급등주 놓치지 않기)
-SURGE_KEYWORDS = [
-    # 시장 특징
-    '특징주', '급등주', '상한가', '급등', '급상승', '폭등', '급반등', '신고가', '52주 최고', '서킷브레이커',
-    # 기업 이벤트 (확실한 것만)
+# ★ 급등 키워드 — 두 그룹으로 분리
+# (A) 강한 신호 = 점수 무관 즉시 발송 (진짜 그날 오른 종목 뉴스)
+SURGE_STRONG = [
+    '특징주', '급등주', '상한가', '신고가', '52주 최고', '서킷브레이커', '급반등',
     '자사주 매입', '자사주 소각', '무상증자', '공개매수', '상장폐지 철회',
-    # 실적
-    '깜짝 실적', '사상 최대', '어닝 서프라이즈', '흑자 전환', '최대 실적',
-    # 바이오·제약
     '임상성공', '임상 성공', '임상통과', 'FDA 승인', '품목허가',
-    # 수주·계약 (규모 명확한 것만 — 단순 '수주'는 너무 넓어서 BONUS로만)
     '대규모 수주', '조 단위', '억달러 수주', '억달러 계약', '조원 수주', '조원 계약',
-    '계약 체결', '대규모 계약', '수출 계약',
-    # 정책
-    '대통령 지시', '국책 사업', '정책 수혜',
-    # 기술
-    '특허 등록', '세계 최초', '독점 기술',
+    '대규모 계약', '대통령 지시', '국책 사업', '세계 최초', '독점 기술',
 ]
+# (B) 맥락 키워드 = 점수 높을 때만 (시황·회고 기사에도 흔히 쓰임)
+SURGE_CONTEXT = [
+    '급등', '급상승', '폭등', '깜짝 실적', '사상 최대', '어닝 서프라이즈',
+    '흑자 전환', '최대 실적', '계약 체결', '수출 계약', '정책 수혜', '특허 등록',
+]
+# 하위호환 — 전체 합친 리스트
+SURGE_KEYWORDS = SURGE_STRONG + SURGE_CONTEXT
 
 STOPWORDS = {
     '기자','뉴스','특파원','기사','관련','이후','현재',
@@ -487,29 +485,29 @@ def build_night_briefing(state, today, top_news):
     kw_dict   = today_day.get('kw', {})
     total     = today_day.get('total', 0)
     escaped_today = html.escape(today)
-    msg = "<b>\U0001f319 오늘 하루 키워드 결산 | " + escaped_today + "</b>\n"
-    msg += "<i>수집 기사 " + str(total) + "건 기준</i>\n\n"
+    msg = "<b>\U0001f319 \uc624\ub298 \ud558\ub8e8 \ud0a4\uc6cc\ub4dc \uacb0\uc0b0 | " + escaped_today + "</b>\n"
+    msg += "<i>\uc218\uc9d1 \uae30\uc0ac " + str(total) + "\uac74 \uae30\uc900</i>\n\n"
     if kw_dict:
-        msg += "<b>\U0001f511 TOP5 키워드</b>\n"
+        msg += "<b>\U0001f511 TOP5 \ud0a4\uc6cc\ub4dc</b>\n"
         sorted_kw = sorted(kw_dict.items(), key=lambda x: x[1], reverse=True)
-        medals = ['1위', '2위', '3위', '4위', '5위']
+        medals = ['1\uc704', '2\uc704', '3\uc704', '4\uc704', '5\uc704']
         for i, (kw, cnt) in enumerate(sorted_kw[:5]):
-            msg += medals[i] + "  <b>" + html.escape(kw) + "</b>  (" + str(cnt) + "건)\n"
+            msg += medals[i] + "  <b>" + html.escape(kw) + "</b>  (" + str(cnt) + "\uac74)\n"
     if top_news:
-        msg += "\n<b>\U0001f525 오늘의 주목 뉴스 TOP3</b>\n"
+        msg += "\n<b>\U0001f525 \uc624\ub298\uc758 \uc8fc\ubaa9 \ub274\uc2a4 TOP3</b>\n"
         for i, n in enumerate(top_news[:3], 1):
             title = html.escape(n.get('title', '')[:35])
             score = n.get('score', 0)
-            msg += str(i) + ". " + title + "… (" + str(score) + "점)\n"
+            msg += str(i) + ". " + title + "\u2026 (" + str(score) + "\uc810)\n"
     if kw_dict:
         top1 = sorted(kw_dict.items(), key=lambda x: x[1], reverse=True)[0][0]
-        msg += "\n<b>\U0001f4a1 내일 주목할 키워드</b>\n→ <b>" + html.escape(top1) + "</b> 흐름 지속 여부 체크\n"
-    msg += "\n<i>라인투자자산운용 | 사실·재료 정리일 뿐, 투자판단은 본인책임</i>"
+        msg += "\n<b>\U0001f4a1 \ub0b4\uc77c \uc8fc\ubaa9\ud560 \ud0a4\uc6cc\ub4dc</b>\n\u2192 <b>" + html.escape(top1) + "</b> \ud750\ub984 \uc9c0\uc18d \uc5ec\ubd80 \uccb4\ud06c\n"
+    msg += "\n<i>\ub77c\uc778\ud22c\uc790\uc790\uc0b0\uc6b4\uc6a9 | \uc0ac\uc2e4\u00b7\uc7ac\ub8cc \uc815\ub9ac\uc77c \ubfd0, \ud22c\uc790\ud310\ub2e8\uc740 \ubcf8\uc778\ucc45\uc784</i>"
     return msg
 
 
 def check_night_briefing(cfg, state, now, today, top_news):
-    """매일 자정(00:00~00:10) 하루 결산 브리핑 발송"""
+    """\ub9e4\uc77c \uc790\uc815(00:00~00:10) \ud558\ub8e8 \uacb0\uc0b0 \ube0c\ub9ac\ud551 \ubc1c\uc1a1"""
     bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
     chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
     if not (bot_token and chat_id):
@@ -523,7 +521,7 @@ def check_night_briefing(cfg, state, now, today, top_news):
     msg = build_night_briefing(state, yesterday, top_news)
     send_telegram(bot_token, chat_id, msg)
     state['last_night_briefing'] = today
-    log("  → 발송: 자정 결산 브리핑 (" + yesterday + " TOP5)")
+    log("  -> \ubc1c\uc1a1: \uc790\uc815 \uacb0\uc0b0 \ube0c\ub9ac\ud551 (" + yesterday + " TOP5)")
 
 
 def maybe_send_briefing(cfg, state, now, today):
@@ -595,17 +593,24 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
         for n in new_scored[:3]:
             log(f"  [{n['score']}점] {n['title'][:35]}")
 
-        # 발송 판단 — 80점 이상 OR 급등 키워드 포함
-        def has_surge(news):
+        # 발송 판단
+        def has_strong(news):   # 강한 신호 = 점수 무관 (상한가·특징주 등)
             title = news.get('title', '')
-            return any(kw in title for kw in SURGE_KEYWORDS)
+            return any(kw in title for kw in SURGE_STRONG)
+
+        def has_context(news):  # 맥락 키워드 = 점수 높을 때만 (폭등·사상최대 등)
+            title = news.get('title', '')
+            return any(kw in title for kw in SURGE_CONTEXT)
 
         def has_bonus(news):
             title = news.get('title', '')
             return any(kw in title for kw in BONUS_KEYWORDS)
 
+        # ★ 즉시발송: 80점↑ OR 강한신호(점수무관) OR 맥락키워드+30점↑
         urgent = [n for n in new_scored
-                  if n['score'] >= 80 or (has_surge(n) and n['score'] >= 3)]   # ★80점↑ 또는 급등키워드(3점↑)
+                  if n['score'] >= 80
+                  or has_strong(n)
+                  or (has_context(n) and n['score'] >= 30)]
         should_send = False
         header = None
         send_list = []
@@ -614,10 +619,10 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             header = "* 돈이 반응한 뉴스 - 투자자필독 *"
             send_list = urgent
         elif cycle % 24 == 0 and cycle > 0:          # ★정기: 2시간마다 (첫사이클 제외)
-            # ★30점↑ OR SURGE OR (BONUS+15점↑) = 0점짜리 잡음 차단
+            # ★30점↑ OR 강한신호 OR (BONUS+15점↑)
             filtered = [n for n in new_scored
                         if n['score'] >= 30
-                        or (has_surge(n) and n['score'] >= 3)
+                        or has_strong(n)
                         or (has_bonus(n) and n['score'] >= 15)]
             if filtered:
                 should_send = True
@@ -642,7 +647,7 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
     # (6) 장전 브리핑 발송 체크 + 상태 저장
     maybe_send_briefing(cfg, state, now, today)
 
-    # 자정 결산 브리핑
+    # \uc790\uc815 \uacb0\uc0b0 \ube0c\ub9ac\ud551
     top_scored = scored[:10] if all_news else []
     check_night_briefing(cfg, state, now, today, top_scored)
 
