@@ -605,7 +605,7 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             return any(kw in title for kw in BONUS_KEYWORDS)
 
         urgent = [n for n in new_scored
-                  if n['score'] >= 80 or has_surge(n)]   # ★80점↑ 또는 급등키워드
+                  if n['score'] >= 80 or (has_surge(n) and n['score'] >= 3)]   # ★80점↑ 또는 급등키워드(3점↑)
         should_send = False
         header = None
         send_list = []
@@ -617,7 +617,7 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             # ★30점↑ OR SURGE OR (BONUS+15점↑) = 0점짜리 잡음 차단
             filtered = [n for n in new_scored
                         if n['score'] >= 30
-                        or has_surge(n)
+                        or (has_surge(n) and n['score'] >= 3)
                         or (has_bonus(n) and n['score'] >= 15)]
             if filtered:
                 should_send = True
