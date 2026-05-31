@@ -39,6 +39,11 @@ BASELINE_DAYS     = 5      # 급증률 기준이 되는 '최근 며칠' 평균
 TOP_N_BRIEF       = 7      # 브리핑에 담을 키워드 수
 STATE_FILE        = os.environ.get('STATE_FILE', 'kw_state.json')  # 일별 키워드 누적 저장
 
+# ── (7) 자정 결산 브리핑 설정 ★ 신규 ──────────────────
+NIGHT_BRIEF_HOUR  = 0      # 자정 브리핑 시각(시) → 00:00
+NIGHT_BRIEF_MIN   = 0      # 자정 브리핑 시각(분) → 00:00
+TOP_N_NIGHT       = 5      # 자정 결산 TOP5 키워드
+
 # ── 환경변수 우선, config.env fallback
 def load_config():
     config = {}
@@ -376,7 +381,68 @@ def build_briefing(surges, has_baseline, today):
     msg += "\n<i>라인투자자산운용 | 사실·재료 정리일 뿐, 투자판단은 본인책임</i>"
     return msg
 
-def detect_theme(title):
+def build_night_briefing(state, today, top_news):
+    """자정 결산 브리핑 메시지 생성 — 오늘 하루 키워드 TOP5 + 주목 뉴스"""
+    today_day = state['daily'].get(today, {})
+    kw_dict   = today_day.get('kw', {})
+    total     = today_day.get('total', 0)
+
+    msg = f"<b>🌙 오늘 하루 키워드 결산 | {html.escape(today)}</b>\n"
+    msg += f"<i>07:00 ~ 24:00 수집 기사 {total}건 기준</i>\n\n"
+
+    # TOP5 키워드
+    if kw_dict:
+        msg += "<b>🔑 TOP5 키워드</b>\n"
+        sorted_kw = sorted(kw_dict.items(), key=lambda x: x[1], reverse=True)
+        medals = ['1위', '2위', '3위', '4위', '5위']
+        for i, (kw, cnt) in enumerate(sorted_kw[:TOP_N_NIGHT]):
+            msg += f"{medals[i]}  <b>{html.escape(kw)}</b>  ({cnt}건)\n"
+    else:
+        msg += "오늘 키워드 데이터가 없어요.\n"
+
+    # 오늘 주목 뉴스 TOP3
+    if top_news:
+        msg += f"\n<b>🔥 오늘의 주목 뉴스 TOP3</b>\n"
+        for i, n in enumerate(top_news[:3], 1):
+            title = html.escape(n.get('title', '')[:35])
+            score = n.get('score', 0)
+            msg += f"{i}. {title}… ({score}점)\n"
+
+    # 내일 힌트
+    if kw_dict:
+        top1 = sorted(kw_dict.items(), key=lambda x: x[1], reverse=True)[0][0]
+        msg += f"\n<b>💡 내일 주목할 키워드</b>\n"
+        msg += f"→ <b>{html.escape(top1)}</b> 관련 흐름 지속 여부 체크\n"
+
+    msg += "\n<i>라인투자자산운용 | 사실·재료 정리일 뿐, 투자판단은 본인책임</i>"
+    return msg
+
+
+def check_night_briefing(cfg, state, now, today, top_news):
+    """매일 자정(00:00) 하루 한 번 결산 브리핑 발송"""
+    bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
+    chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
+    if not (bot_token and chat_id):
+        return
+
+    # 자정 발송 체크 — 00:00~00:10 사이 첫 사이클에 한 번
+    now_min       = now.hour * 60 + now.minute
+    night_min     = NIGHT_BRIEF_HOUR * 60 + NIGHT_BRIEF_MIN   # 00:00 = 0
+    night_min_end = night_min + 10                              # 00:10 = 10
+
+    # 자정은 0분이라 날짜가 바뀌는 시점 — 어제 날짜로 결산
+    yesterday = (now - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    last_key  = f'last_night_briefing'
+
+    if not (night_min <= now_min < night_min_end):
+        return
+    if state.get(last_key) == today:   # 오늘 이미 발송
+        return
+
+    msg = build_night_briefing(state, yesterday, top_news)
+    send_telegram(bot_token, chat_id, msg)
+    state[last_key] = today
+    log(f"  → 발송: 🌙 자정 결산 브리핑 ({yesterday} 키워드 TOP5)")
     detected = []
     for theme, keys in THEME_SECTOR.items():
         for key in keys:
@@ -595,6 +661,11 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
 
     # (6) 장전 브리핑 발송 체크 + 상태 저장
     maybe_send_briefing(cfg, state, now, today)
+
+    # ★ (7) 자정 결산 브리핑 발송 체크
+    top_news_today = sorted(all_news, key=lambda x: x.get('score', 0), reverse=True) if all_news else []
+    check_night_briefing(cfg, state, now, today, top_news_today)
+
     save_state(state)
 
     # 메모리 관리: 발송 기록이 너무 커지면 비움
