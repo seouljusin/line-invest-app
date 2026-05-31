@@ -96,11 +96,10 @@ BONUS_KEYWORDS = {
 
 # ★ 급등 키워드 — 점수 상관없이 무조건 알림 (중소형 급등주 놓치지 않기)
 SURGE_KEYWORDS = [
-    # 주가 직접 반응
-    '상한가', '급등', '급상승', '폭등', '급반등', '신고가', '52주 최고', '서킷브레이커',
-    # 기업 이벤트
+    # 시장 특징
+    '특징주', '급등주', '상한가', '급등', '급상승', '폭등', '급반등', '신고가', '52주 최고', '서킷브레이커',
+    # 기업 이벤트 (확실한 것만)
     '자사주 매입', '자사주 소각', '무상증자', '공개매수', '상장폐지 철회',
-    '상장', '합병', '인수', '피인수',
     # 실적
     '깜짝 실적', '사상 최대', '어닝 서프라이즈', '흑자 전환', '최대 실적',
     # 바이오·제약
@@ -569,9 +568,11 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             header = "* 돈이 반응한 뉴스 - 투자자필독 *"
             send_list = urgent
         elif cycle % 24 == 1:                         # ★정기: 2시간마다
-            # ★30점↑ OR 급등키워드 OR 보너스키워드 포함 = 확실한 재료만
+            # ★30점↑ OR SURGE OR (BONUS+15점↑) = 0점짜리 잡음 차단
             filtered = [n for n in new_scored
-                        if n['score'] >= 30 or has_surge(n) or has_bonus(n)]
+                        if n['score'] >= 30
+                        or has_surge(n)
+                        or (has_bonus(n) and n['score'] >= 15)]
             if filtered:
                 should_send = True
                 header = "📊 상위 검색순위 뉴스"
