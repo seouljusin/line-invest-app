@@ -418,6 +418,33 @@ def build_night_briefing(state, today, top_news):
     return msg
 
 
+def detect_theme(title):
+    detected = []
+    for theme, keys in THEME_SECTOR.items():
+        for key in keys:
+            if key in title:
+                detected.append(theme)
+                break
+    return list(set(detected))
+
+def get_theme_stocks(themes):
+    fallback = {
+        '반도체':  ['삼성전자', 'SK하이닉스', '한미반도체'],
+        'AI':      ['삼성전자', 'SK하이닉스', 'NAVER'],
+        '2차전지': ['LG에너지솔루션', '삼성SDI', '에코프로비엠'],
+        '바이오':  ['삼성바이오로직스', '셀트리온', '유한양행'],
+        '방산':    ['한화에어로스페이스', 'LIG넥스원', '현대로템'],
+        '원전':    ['두산에너빌리티', '한전기술', '비에이치아이'],
+        '조선':    ['HD한국조선해양', '삼성중공업', 'HD현대중공업'],
+        '전력':    ['LS ELECTRIC', '효성중공업', '제룡전기'],
+        '로봇':    ['현대로보틱스', '레인보우로보틱스', 'HD현대'],
+        '제약':    ['유한양행', '종근당', '한미약품'],
+    }
+    stocks = []
+    for theme in themes[:2]:
+        stocks.extend(fallback.get(theme, [])[:3])
+    return list(set(stocks))[:5]
+
 def check_night_briefing(cfg, state, now, today, top_news):
     """매일 자정(00:00) 하루 한 번 결산 브리핑 발송"""
     bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
@@ -450,24 +477,6 @@ def check_night_briefing(cfg, state, now, today, top_news):
                 detected.append(theme)
                 break
     return list(set(detected))
-
-def get_theme_stocks(themes):
-    fallback = {
-        '반도체':  ['삼성전자', 'SK하이닉스', '한미반도체'],
-        'AI':      ['삼성전자', 'SK하이닉스', 'NAVER'],
-        '2차전지': ['LG에너지솔루션', '삼성SDI', '에코프로비엠'],
-        '바이오':  ['삼성바이오로직스', '셀트리온', '유한양행'],
-        '방산':    ['한화에어로스페이스', 'LIG넥스원', '현대로템'],
-        '원전':    ['두산에너빌리티', '한전기술', '비에이치아이'],
-        '조선':    ['HD한국조선해양', '삼성중공업', 'HD현대중공업'],
-        '전력':    ['LS ELECTRIC', '효성중공업', '제룡전기'],
-        '로봇':    ['현대로보틱스', '레인보우로보틱스', 'HD현대'],
-        '제약':    ['유한양행', '종근당', '한미약품'],
-    }
-    stocks = []
-    for theme in themes[:2]:
-        stocks.extend(fallback.get(theme, [])[:3])
-    return list(set(stocks))[:5]
 
 def score_news(news_list, word_count, word_sources):
     scored = []
