@@ -480,42 +480,53 @@ def build_report(scored_news, keyword_ranking, now_str, header):
     msg += "\n\n<i>라인투자자산운용 | 투자판단은 본인책임</i>"
     return msg
 
+
 def build_night_briefing(state, today, top_news):
+    """자정 결산 브리핑 메시지 생성"""
     today_day = state['daily'].get(today, {})
     kw_dict   = today_day.get('kw', {})
     total     = today_day.get('total', 0)
-    msg = f"<b>🌙 오늘 하루 키워드 결산 | {html.escape(today)}</b>\n"
-    msg += f"<i>수집 기사 {total}건 기준</i>\n\n"
+    escaped_today = html.escape(today)
+    msg = "<b>\U0001f319 오늘 하루 키워드 결산 | " + escaped_today + "</b>\n"
+    msg += "<i>수집 기사 " + str(total) + "건 기준</i>\n\n"
     if kw_dict:
-        msg += "<b>🔑 TOP5 키워드</b>\n"
+        msg += "<b>\U0001f511 TOP5 키워드</b>\n"
         sorted_kw = sorted(kw_dict.items(), key=lambda x: x[1], reverse=True)
         medals = ['1위', '2위', '3위', '4위', '5위']
         for i, (kw, cnt) in enumerate(sorted_kw[:5]):
-            msg += f"{medals[i]}  <b>{html.escape(kw)}</b>  ({cnt}건)\n"
+            msg += medals[i] + "  <b>" + html.escape(kw) + "</b>  (" + str(cnt) + "건)\n"
     if top_news:
-        msg += f"\n<b>🔥 오늘의 주목 뉴스 TOP3</b>\n"
+        msg += "\n<b>\U0001f525 오늘의 주목 뉴스 TOP3</b>\n"
         for i, n in enumerate(top_news[:3], 1):
             title = html.escape(n.get('title', '')[:35])
             score = n.get('score', 0)
-            msg += f"{i}. {title}… ({score}점)\n"
+            msg += str(i) + ". " + title + "… (" + str(score) + "점)\n"
     if kw_dict:
         top1 = sorted(kw_dict.items(), key=lambda x: x[1], reverse=True)[0][0]
-        msg += f"\n<b>💡 내일 주목할 키워드</b>\n→ <b>{html.escape(top1)}</b> 흐름 지속 여부 체크\n"
+        msg += "\n<b>\U0001f4a1 내일 주목할 키워드</b>\n→ <b>" + html.escape(top1) + "</b> 흐름 지속 여부 체크\n"
     msg += "\n<i>라인투자자산운용 | 사실·재료 정리일 뿐, 투자판단은 본인책임</i>"
     return msg
 
+
 def check_night_briefing(cfg, state, now, today, top_news):
+    """매일 자정(00:00~00:10) 하루 결산 브리핑 발송"""
     bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
     chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
-    if not (bot_token and chat_id): return
-    now_min   = now.hour * 60 + now.minute
-    if not (0 <= now_min < 10): return          # 00:00~00:10
+    if not (bot_token and chat_id):
+        return
+    now_min = now.hour * 60 + now.minute
+    if not (0 <= now_min < 10):
+        return
     yesterday = (now - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-    if state.get('last_night_briefing') == today: return
+    if state.get('last_night_briefing') == today:
+        return
     msg = build_night_briefing(state, yesterday, top_news)
     send_telegram(bot_token, chat_id, msg)
     state['last_night_briefing'] = today
-    log(f"  → 발송: 🌙 자정 결산 브리핑 ({yesterday} TOP5)")
+    log("  → 발송: 자정 결산 브리핑 (" + yesterday + " TOP5)")
+
+
+def maybe_send_briefing(cfg, state, now, today):
     """평일 아침 BRIEF_HOUR시대에 하루 한 번 장전 브리핑 발송"""
     bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
     chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
@@ -602,7 +613,7 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             should_send = True
             header = "* 돈이 반응한 뉴스 - 투자자필독 *"
             send_list = urgent
-        elif cycle % 24 == 0 and cycle > 0:              # ★정기: 2시간마다 (cycle=0 제외)
+        elif cycle % 24 == 0 and cycle > 0:          # ★정기: 2시간마다 (첫사이클 제외)
             # ★30점↑ OR SURGE OR (BONUS+15점↑) = 0점짜리 잡음 차단
             filtered = [n for n in new_scored
                         if n['score'] >= 30
@@ -631,8 +642,8 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
     # (6) 장전 브리핑 발송 체크 + 상태 저장
     maybe_send_briefing(cfg, state, now, today)
 
-    # ★ 자정 결산 브리핑
-    top_scored = scored[:10] if 'scored' in dir() and scored else []
+    # 자정 결산 브리핑
+    top_scored = scored[:10] if all_news else []
     check_night_briefing(cfg, state, now, today, top_scored)
 
     save_state(state)
