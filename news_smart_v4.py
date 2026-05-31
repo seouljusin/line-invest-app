@@ -517,12 +517,23 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
         for n in new_scored[:3]:
             log(f"  [{n['score']}점] {n['title'][:35]}")
 
-        # 발송 판단 — 종류에 따라 제목/담는 내용을 다르게
-        urgent = [n for n in new_scored if n['score'] >= 80]   # ★80점 이상만 = 돈이 반응한 뉴스 (60→80 상향)
+        # ★ 급등 키워드 — 점수 상관없이 무조건 알림 (중소형 급등주 놓치지 않기)
+        SURGE_KEYWORDS = ['상한가', '급등', '급상승', '폭등', '급반등',
+                          '신고가', '52주 최고', '서킷브레이커',
+                          '상장', '합병', '인수', '피인수', '공개매수',
+                          '임상성공', '임상통과', 'FDA 승인', '허가',
+                          '수주', '계약 체결', '대규모 계약', '깜짝 실적']
+        def has_surge(news):
+            title = news.get('title', '')
+            return any(kw in title for kw in SURGE_KEYWORDS)
+
+        # 발송 판단 — 80점 이상 OR 급등 키워드 포함
+        urgent = [n for n in new_scored
+                  if n['score'] >= 80 or has_surge(n)]   # ★80점↑ 또는 급등키워드 = 둘 다 잡기
         should_send = False
         header = None
         send_list = []
-        if urgent:                                   # 특급속보: 60점 이상만 담음 (낮은 건 제외)
+        if urgent:
             should_send = True
             header = "* 돈이 반응한 뉴스 - 투자자필독 *"
             send_list = urgent
