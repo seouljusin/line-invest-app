@@ -460,6 +460,19 @@ def send_telegram(bot_token, chat_id, message):
     except Exception as e:
         log(f"  [텔레그램] 오류: {str(e)[:50]}")
 
+def is_us_stock(title):
+    """미국 종목 뉴스인지 판별 — 영문 티커(괄호) 또는 미국 기업/거래소 표시"""
+    # (1) 영문 티커 패턴: 엑셀릭시스(EXEL), ST마이크로(STM) 등 — 괄호 안 영대문자 2~5자
+    if re.search(r'\([A-Z]{2,5}\)', title):
+        return True
+    # (2) 미국 대표 기업·거래소 명시 (한국 영향 뉴스가 아닌 미국 단독 종목 뉴스)
+    us_markers = [
+        '나스닥', '뉴욕증시', 'NYSE', 'S&P', '다우', '월가',
+        '엑셀릭시스', 'ST마이크로', '인피니언',
+    ]
+    return any(m in title for m in us_markers)
+
+
 def build_report(scored_news, keyword_ranking, now_str, header):
     # header: "* 돈이 반응한 뉴스 - 투자자필독 *" 또는 "📊 상위 검색순위 뉴스"
     msg = ""
@@ -482,7 +495,8 @@ def build_report(scored_news, keyword_ranking, now_str, header):
         bonus_str = html.escape(' '.join(n['bonus'][:2]) if n['bonus'] else '')
         theme_str = html.escape('/'.join(n['themes'][:2]) if n['themes'] else '')
         title_safe = html.escape(n['title'][:38])           # (5) 제목 escape
-        msg += f"\n\n{i}. {time_tag} <b>{title_safe}</b>"
+        us_tag = " 🇺🇸<b>[미국]</b>" if is_us_stock(n['title']) else ""
+        msg += f"\n\n{i}. {time_tag} <b>{title_safe}</b>{us_tag}"
         msg += f"\n   점수:{n['score']} | {theme_str} | {bonus_str}"
         if n['themes']:
             stocks = get_theme_stocks(n['themes'])
