@@ -512,15 +512,15 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             log(f"  [{n['score']}점] {n['title'][:35]}")
 
         # 발송 판단 — 종류에 따라 제목/담는 내용을 다르게
-        urgent = [n for n in new_scored if n['score'] >= 40]   # 40점 이상만 = 돈 되는 뉴스
+        urgent = [n for n in new_scored if n['score'] >= 60]   # ★60점 이상만 = 돈이 반응한 뉴스 (중복 줄이려 40→60)
         should_send = False
         header = None
         send_list = []
-        if urgent:                                   # 특급속보: 40점 이상만 담음 (낮은 건 제외)
+        if urgent:                                   # 특급속보: 60점 이상만 담음 (낮은 건 제외)
             should_send = True
-            header = "💰 돈이 되는 경제뉴스 — 이 뉴스는 꼭 읽자!"
+            header = "* 돈이 반응한 뉴스 - 투자자필독 *"
             send_list = urgent
-        elif cycle % 6 == 1:                          # 정기: 점수 상관없이 상위 5개
+        elif cycle % 24 == 1:                         # ★정기: 2시간마다 상위 5개 (5분×24=2시간, 기존 30분에서 변경)
             should_send = True
             header = "📊 상위 검색순위 뉴스"
             send_list = new_scored
