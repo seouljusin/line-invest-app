@@ -626,7 +626,38 @@ def main():
         log("  관련주 DB: 없음 (테마매핑 폴백 사용)")
 
     mem = {'seen_date': '', 'seen_today': set()}
-    sent_titles = set()
+
+    # ★ sent_titles 파일 캐시 — 재시작 시 중복 방지 (/tmp는 재시작 사이엔 유지)
+    SENT_CACHE = '/tmp/sent_titles_cache.json'
+    def load_sent():
+        try:
+            import json as _j, time as _t
+            data = _j.load(open(SENT_CACHE, encoding='utf-8'))
+            now = _t.time()
+            # 24시간 지난 항목 제거
+            return set(t for t, ts in data.items() if now - ts < 86400)
+        except Exception:
+            return set()
+    def save_sent(st):
+        try:
+            import json as _j, time as _t
+            now = _t.time()
+            existing = {}
+            try:
+                existing = _j.load(open(SENT_CACHE, encoding='utf-8'))
+            except Exception:
+                pass
+            for t in st:
+                if t not in existing:
+                    existing[t] = now
+            # 24시간 지난 것 정리
+            existing = {t: ts for t, ts in existing.items() if now - ts < 86400}
+            _j.dump(existing, open(SENT_CACHE, 'w', encoding='utf-8'), ensure_ascii=False)
+        except Exception:
+            pass
+
+    sent_titles = load_sent()
+    log(f"  캐시 로드: 기발송 {len(sent_titles)}건")
     cycle = 0
     log("\n  시작!\n")
 
@@ -634,6 +665,7 @@ def main():
         cycle += 1
         try:                                          # (3) 한 사이클 실패해도 봇은 계속
             run_cycle(cfg, sent_titles, cycle, state, mem)
+            save_sent(sent_titles)                   # ★ 매 사이클 후 캐시 저장
         except Exception as e:
             log(f"  [사이클 오류] {type(e).__name__}: {str(e)[:120]}")
         log("  다음: 5분 후\n")
