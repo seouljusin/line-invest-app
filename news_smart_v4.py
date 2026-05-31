@@ -108,7 +108,7 @@ SURGE_KEYWORDS = [
     # 실적
     '깜짝 실적', '사상 최대', '어닝 서프라이즈', '흑자 전환', '최대 실적',
     # 바이오·제약
-    '임상성공', '임상 성공', '임상통과', 'FDA 승인', '품목허가', '허가',
+    '임상성공', '임상 성공', '임상통과', 'FDA 승인', '품목허가',
     # 수주·계약 (규모 명확한 것만 — 단순 '수주'는 너무 넓어서 BONUS로만)
     '대규모 수주', '조 단위', '억달러 수주', '억달러 계약', '조원 수주', '조원 계약',
     '계약 체결', '대규모 계약', '수출 계약',
@@ -470,13 +470,6 @@ def check_night_briefing(cfg, state, now, today, top_news):
     send_telegram(bot_token, chat_id, msg)
     state[last_key] = today
     log(f"  → 발송: 🌙 자정 결산 브리핑 ({yesterday} 키워드 TOP5)")
-    detected = []
-    for theme, keys in THEME_SECTOR.items():
-        for key in keys:
-            if key in title:
-                detected.append(theme)
-                break
-    return list(set(detected))
 
 def score_news(news_list, word_count, word_sources):
     scored = []
