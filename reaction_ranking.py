@@ -153,12 +153,12 @@ def build_ranking(path=None, out=None):
 
     if _GH is not None:
         try:
-            # reaction_scores.json 도 깃허브에 백업 (경로 분리)
-            import importlib
-            _bak = importlib.reload(_GH) if False else _GH
-            # 별도 경로로 커밋하려면 환경변수 조정 필요 — 여기선 로컬 저장만, 백업은 옵션
-        except Exception:
-            pass
+            # reaction_scores.json 을 깃허브 별도 경로로 백업 (추적로그 안 건드림)
+            # → 로컬 매매엔진(나비/돌파)이 깃허브에서 받아 읽을 수 있게 함
+            _GH.backup_to_github(out, msg='반응순위 갱신',
+                                 repo_path='reaction_scores.json')
+        except Exception as e:
+            print(f"  [reaction_ranking] 백업 스킵: {str(e)[:50]}", flush=True)
 
     return result
 
