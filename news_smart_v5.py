@@ -565,7 +565,13 @@ def build_night_briefing(state, today, top_news):
         for i, n in enumerate(top_news[:3], 1):
             title = html.escape(n.get('title', '')[:35])
             score = n.get('score', 0)
-            msg += str(i) + ". " + title + "\u2026 (" + str(score) + "\uc810)\n"
+            url = n.get('url', '')
+            if url:
+                # 제목을 클릭 가능한 링크로 (텔레그램 HTML 모드)
+                link = '<a href="' + html.escape(url) + '">' + title + "\u2026</a>"
+                msg += str(i) + ". " + link + " (" + str(score) + "\uc810)\n"
+            else:
+                msg += str(i) + ". " + title + "\u2026 (" + str(score) + "\uc810)\n"
     if kw_dict:
         top1 = sorted(kw_dict.items(), key=lambda x: x[1], reverse=True)[0][0]
         msg += "\n<b>\U0001f4a1 \ub0b4\uc77c \uc8fc\ubaa9\ud560 \ud0a4\uc6cc\ub4dc</b>\n\u2192 <b>" + html.escape(top1) + "</b> \ud750\ub984 \uc9c0\uc18d \uc5ec\ubd80 \uccb4\ud06c\n"
