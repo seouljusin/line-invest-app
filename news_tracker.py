@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-news_tracker.py — 뉴스 추적 로그 (페이퍼웍의 핵심)
+news_tracker.py — 뉴스 추적 로그 (페이퍼웍의 핵심) [깃허브 영구저장판]
 ======================================================================
 라인투자자산운용 | 김팀장 | 2026-06-01
 
@@ -13,13 +13,27 @@ news_tracker.py — 뉴스 추적 로그 (페이퍼웍의 핵심)
      → "점수 80↑ 뉴스 종목은 평균 +X% 올랐다" 같은 통계
 
 저장: news_track_log.jsonl (한 줄=한 발송기록, append-only)
-  클라우드(Render)면 환경변수 NEWS_TRACK_LOG 로 경로 지정 가능.
-  ※ Render 재시작 시 로컬파일 날아갈 수 있음 → 운영 시 DB나 외부저장 권장(주석 참고).
+  ★영구저장: github_backup 으로 깃허브에 자동 커밋/복원 (Render 휘발성 대응)
+  - import 시 깃허브에서 복원 (restore)
+  - log_sent 후 깃허브에 커밋 (backup)
+  - GITHUB_TOKEN 없으면 백업/복원 자동 생략 (로컬만, 에러 없음)
 """
 import os, json, datetime, re
 
 LOG_PATH = os.environ.get('NEWS_TRACK_LOG', 'news_track_log.jsonl')
 KST = datetime.timezone(datetime.timedelta(hours=9))
+
+# ── 깃허브 영구저장 (있으면 사용, 없으면 무시) ──
+_GH = None
+try:
+    import github_backup as _GH
+    # 시작 시 깃허브에서 복원 (Render 재시작 대응)
+    try:
+        _GH.restore_from_github(LOG_PATH)
+    except Exception as _e:
+        print(f"  [news_tracker] 복원 생략: {str(_e)[:50]}", flush=True)
+except Exception:
+    _GH = None   # github_backup.py 없거나 토큰 없으면 로컬만
 
 # ── 종목 사전 로드 (make_stock_master.py 가 만든 stock_master.json) ──
 _STOCK_MASTER = None
@@ -42,26 +56,21 @@ def match_stocks_in_title(title, master=None):
     names = master.get('names', {})
     aliases = master.get('aliases', {})
     found = {}   # code -> name
-    # 정식 종목명: 긴 것부터 검사 (부분 겹침 방지)
     for nm in sorted(names.keys(), key=len, reverse=True):
         if len(nm) >= 2 and nm in title:
             code = names[nm]
             if code not in found:
                 found[code] = nm
-    # 약칭
     for al, code in aliases.items():
         if len(al) >= 2 and al in title and code not in found:
             found[code] = al
     return [{'name': v, 'code': k} for k, v in found.items()][:3]
 
-# 종목명 → 종목코드 매핑 (사전 우선, 폴백은 stock_db)
 def extract_stock(title, stocks_in_title, STOCK_DB=None, stock_db=None):
     """발송 뉴스에서 관련 종목 추출. 사전 매칭 우선."""
-    # 1순위: stock_master 사전 정확 매칭
     hits = match_stocks_in_title(title)
     if hits:
         return hits
-    # 2순위: stock_db 폴백
     found = []
     if STOCK_DB and stock_db:
         try:
@@ -75,9 +84,7 @@ def extract_stock(title, stocks_in_title, STOCK_DB=None, stock_db=None):
 
 
 def log_sent(send_list, now=None, STOCK_DB=None, stock_db=None):
-    """발송한 뉴스 리스트를 추적 로그에 append.
-       send_list: score_news 결과 dict 리스트 (title/score/themes/novelty 등 포함)
-    """
+    """발송한 뉴스 리스트를 추적 로그에 append. 그 후 깃허브에 백업."""
     if now is None:
         now = datetime.datetime.now(KST)
     ts = now.strftime('%Y-%m-%d %H:%M:%S')
@@ -86,7 +93,6 @@ def log_sent(send_list, now=None, STOCK_DB=None, stock_db=None):
     for n in send_list:
         title = n.get('title', '')
         themes = n.get('themes', [])
-        # 관련종목: stock_master 사전으로 제목에서 정확히 매칭
         try:
             related = extract_stock(title, set(), STOCK_DB, stock_db)
         except Exception:
@@ -102,8 +108,7 @@ def log_sent(send_list, now=None, STOCK_DB=None, stock_db=None):
             'bonus': n.get('bonus', []),
             'source': n.get('source', ''),
             'url': n.get('url', ''),
-            'related_stocks': related,   # [{'name','code'}] best-effort
-            # 아래는 나중에 track_returns.py 가 채움
+            'related_stocks': related,
             'ret_1d': None, 'ret_3d': None, 'ret_5d': None,
             'price_at_send': None,
         }
@@ -114,6 +119,12 @@ def log_sent(send_list, now=None, STOCK_DB=None, stock_db=None):
                 f.write('\n'.join(lines) + '\n')
         except Exception as e:
             print(f"  [news_tracker] 저장 실패: {str(e)[:50]}", flush=True)
+        # ★깃허브 백업 (토큰 있을 때만, 실패해도 무시)
+        if _GH is not None:
+            try:
+                _GH.backup_to_github(LOG_PATH, msg=f'추적로그 {date} ({len(lines)}건)')
+            except Exception as e:
+                print(f"  [news_tracker] 깃허브 백업 실패: {str(e)[:50]}", flush=True)
     return len(lines)
 
 
@@ -136,7 +147,6 @@ def load_log(path=None):
 
 
 if __name__ == '__main__':
-    # 간단 테스트
     sample = [{
         'title': '한화에어로스페이스, 대규모 수주 계약 체결',
         'score': 85, 'themes': ['방산'], 'novelty': 'novel', 'novelty_pt': 6,
