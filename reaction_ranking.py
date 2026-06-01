@@ -86,6 +86,22 @@ def build_ranking(path=None, out=None):
         json.dump({}, open(out, 'w', encoding='utf-8'))
         return {}
 
+    # ★중복제거: 같은 날(date) + 같은 기사(title)는 1표본으로만.
+    #   재배포 등으로 동일 기사가 여러 번 기록돼 n 이 뻥튀기되는 것 방지.
+    #   (다른 날 같은 기사는 별개 사건이므로 살림)
+    _seen = set()
+    _deduped = []
+    for rec in rows:
+        _key = (rec.get('date'), rec.get('title'))
+        if _key in _seen:
+            continue
+        _seen.add(_key)
+        _deduped.append(rec)
+    _before, _after = len(rows), len(_deduped)
+    rows = _deduped
+    if _before != _after:
+        print(f"  [reaction_ranking] 중복제거: {_before}건 → {_after}건 (고유 기사 기준)", flush=True)
+
     # (theme, code) -> 반응 리스트 수집
     # rec 의 themes(여러 재료) × related_stocks(여러 종목) 조합
     agg = defaultdict(lambda: defaultdict(lambda: {
