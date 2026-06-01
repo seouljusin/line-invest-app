@@ -741,6 +741,20 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
     top_scored = scored[:10] if all_news else []
     check_night_briefing(cfg, state, now, today, top_scored)
 
+    # [v5] ★ 반응학습 하루 1번 — 장 마감 후(16시~): ret 채우고 종목반응 순위 갱신
+    #   ③ track_returns : 추적로그의 ret_1d/3d/5d 를 실제 주가로 채움
+    #   ④ reaction_ranking: 채워진 데이터 → reaction_scores.json (재료별 종목 순위)
+    #   ※ 별도 try/except → 실패해도 뉴스 사이클엔 영향 없음
+    if now.hour >= 16 and state.get('last_reaction') != today:
+        try:
+            import track_returns, reaction_ranking
+            n = track_returns.fill_returns()           # ③ ret 채우기
+            reaction_ranking.build_ranking()           # ④ 순위 → reaction_scores.json
+            state['last_reaction'] = today             # 오늘 했음 표시(하루1번 가드)
+            log(f"  → 반응학습 갱신: ret {n}건 채움 + 순위 재계산(reaction_scores.json)")
+        except Exception as e:
+            log(f"  [반응학습] 스킵: {str(e)[:60]}")
+
     save_state(state)
 
     # 메모리 관리: 발송 기록이 너무 커지면 비움
