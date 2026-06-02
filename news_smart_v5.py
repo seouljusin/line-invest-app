@@ -522,6 +522,33 @@ def build_report(scored_news, keyword_ranking, now_str, header):
     if keyword_ranking:
         kw_str = ' | '.join([f"{html.escape(w)}({c})" for w,c in keyword_ranking[:5]])
         msg += f"<b>핵심 키워드</b>\n{kw_str}\n\n"
+
+    # ★ 오늘 주목 테마 섹션 — 점수 높은 뉴스들의 테마 집계 → 상위 3개
+    THEME_EMOJI = {
+        'AI': '🤖', '반도체': '💾', '조선': '🚢', 'LNG': '🚢',
+        '방산': '🛡️', '로봇': '🦾', '바이오': '💊', '2차전지': '🔋',
+        '자동차': '🚗', '건설': '🏗️', '철강': '⚙️', '화학': '🧪',
+        '금융': '🏦', '통신': '📡', '게임': '🎮', '엔터': '🎭',
+        '항공': '✈️', '해운': '🚢', '식품': '🍱', '유통': '🛒',
+        '수주': '📋', '에너지': '⚡', '헬스케어': '🏥',
+    }
+    from collections import Counter as _Counter
+    theme_count = _Counter()
+    theme_rep = {}   # 테마 → 대표 뉴스 제목
+    for n in scored_news[:10]:
+        for th in (n.get('themes') or []):
+            theme_count[th] += 1
+            if th not in theme_rep:
+                theme_rep[th] = n['title'][:28]
+    top_themes = theme_count.most_common(3)
+    if top_themes:
+        msg += "📌 <b>오늘 주목 테마</b>\n"
+        for th, cnt in top_themes:
+            emoji = THEME_EMOJI.get(th, '📈')
+            rep = html.escape(theme_rep.get(th, '')[:28])
+            msg += f"{emoji} {html.escape(th)} — {rep}…\n"
+        msg += "\n"
+
     msg += "<b>주목 뉴스 (점수순)</b>"
     for i, n in enumerate(scored_news[:5], 1):
         tw = n['time_weight']
