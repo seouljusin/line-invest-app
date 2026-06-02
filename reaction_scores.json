@@ -1,1 +1,68 @@
-{}
+{
+  "제약": [
+    {
+      "code": "249420",
+      "name": "일동제약",
+      "score": -1.9,
+      "avg_ret": -3.79,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    }
+  ],
+  "바이오": [
+    {
+      "code": "249420",
+      "name": "일동제약",
+      "score": -1.9,
+      "avg_ret": -3.79,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "226950",
+      "name": "올릭스",
+      "score": -4.86,
+      "avg_ret": -9.72,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    }
+  ],
+  "AI": [
+    {
+      "code": "026960",
+      "name": "동서",
+      "score": 2.12,
+      "avg_ret": 2.12,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "034730",
+      "name": "SK",
+      "score": 1.67,
+      "avg_ret": 1.67,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "049830",
+      "name": "승일",
+      "score": 1.67,
+      "avg_ret": 1.67,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    }
+  ]
+}
