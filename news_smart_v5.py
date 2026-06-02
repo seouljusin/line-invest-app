@@ -546,7 +546,9 @@ def build_report(scored_news, keyword_ranking, now_str, header):
         for th, cnt in top_themes:
             emoji = THEME_EMOJI.get(th, '📈')
             rep = html.escape(theme_rep.get(th, '')[:28])
-            msg += f"{emoji} {html.escape(th)} — {rep}…\n"
+            # keyword_ranking에서 이 테마명과 일치하는 키워드 건수 찾기 (없으면 뉴스 등장 건수)
+            kw_cnt = next((c for w, c in (keyword_ranking or []) if w == th), cnt)
+            msg += f"{emoji} {html.escape(th)}({kw_cnt}) — {rep}…\n"
         msg += "\n"
 
     msg += "<b>주목 뉴스 (점수순)</b>"
