@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-news_smart_v4.py
-라인투자자산운용 뉴스 스마트 시스템 v4 (수정판)
+news_smart_v5.py
+라인투자자산운용 뉴스 스마트 시스템 v5 (TLC 듀얼발송판)
 - flush=True (클라우드 실시간 로그)
 - 환경변수 우선 읽기
 - RSS + 네이버API + DART 3중 수집
@@ -12,6 +12,8 @@ news_smart_v4.py
   (4) KST 시간 고정 → 서버가 UTC여도 시각/DART 날짜 정확
   (5) 텔레그램 HTML escape → 특수문자(&,<,>) 발송 거부 방지
   (6) [1단계] 키워드 급증률 계산 + 장전(08:00) 브리핑 → 오늘 주목 키워드 & 관련주
+  (7) [v5] send_telegram 자기완결형 듀얼발송 — 기존 채널 + The Line Capital 공개채널(면책 부착).
+      import 의존 제거, chat_id는 환경변수 직접 읽기, 실패 시 조용히 넘기지 않고 로그에 이유 기록.
 """
 import os, sys, re, time, datetime, html, json
 import requests
@@ -483,11 +485,12 @@ def score_news(news_list, word_count, word_sources, recent_kw_sets=None):
     return scored
 
 def send_telegram(bot_token, chat_id, message):
+    # [발송 1] 기존 채널 (가족 그룹)
     try:
         r = requests.post(
             f'https://api.telegram.org/bot{bot_token}/sendMessage',
             json={'chat_id': chat_id, 'text': message, 'parse_mode': 'HTML',
-                  'disable_web_page_preview': False},   # 이미지(링크 미리보기) 켜기
+                  'disable_web_page_preview': False},
             timeout=10
         )
         if r.status_code == 200:
@@ -496,6 +499,33 @@ def send_telegram(bot_token, chat_id, message):
             log(f"  [텔레그램] 오류: {r.status_code} {r.text[:80]}")
     except Exception as e:
         log(f"  [텔레그램] 오류: {str(e)[:50]}")
+
+    # [발송 2] The Line Capital 공개 채널 + 면책 (자기완결형 — 조용히 실패 안 함)
+    tlc_chat_id = os.environ.get('TELEGRAM_CHAT_ID_TLC', '').strip()
+    if not tlc_chat_id:
+        log("  [텔레그램] TLC: chat_id 환경변수 없음 — 새 채널 스킵")
+        return
+    disclaimer = (
+        "\n\n--------------------------------\n"
+        "※ 본 자료는 정보 제공 목적이며, 특정 종목의\n"
+        "   매수·매도 추천이 아닙니다.\n"
+        "   투자 판단과 결과는 투자자 본인 책임입니다.\n"
+        "--------------------------------"
+    )
+    tlc_msg = message if "정보 제공 목적" in message else (message + disclaimer)
+    try:
+        r2 = requests.post(
+            f'https://api.telegram.org/bot{bot_token}/sendMessage',
+            json={'chat_id': tlc_chat_id, 'text': tlc_msg, 'parse_mode': 'HTML',
+                  'disable_web_page_preview': False},
+            timeout=10
+        )
+        if r2.status_code == 200:
+            log("  [텔레그램] The Line Capital 발송 완료")
+        else:
+            log(f"  [텔레그램] TLC 오류: {r2.status_code} {r2.text[:120]}")
+    except Exception as e:
+        log(f"  [텔레그램] TLC 예외: {str(e)[:80]}")
 
 def is_us_stock(title):
     """미국 종목 뉴스인지 판별 — 영문 티커(괄호) 또는 미국 기업/거래소 표시"""
@@ -798,7 +828,7 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
 
 def main():
     log("=" * 60)
-    log("  라인 뉴스 스마트 시스템 v4")
+    log("  라인 뉴스 스마트 시스템 v5 (TLC 듀얼발송)")
     log("  RSS + 네이버API + DART 3중 수집")
     log("  [5분마다 체크]")
     log("=" * 60)
@@ -807,6 +837,7 @@ def main():
     log(f"  DART: {'OK' if cfg.get('DART_API_KEY') else 'MISSING'}")
     log(f"  네이버: {'OK' if cfg.get('NAVER_CLIENT_ID') else 'MISSING'}")
     log(f"  텔레그램: {'OK' if cfg.get('TELEGRAM_BOT_TOKEN') else 'MISSING'}")
+    log(f"  TLC 채널: {'OK' if os.environ.get('TELEGRAM_CHAT_ID_TLC') else 'MISSING'}")
 
     state = load_state()                       # (6) 일별 키워드 누적 로드
     days = len(state.get('daily', {}))
