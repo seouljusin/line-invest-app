@@ -45,7 +45,7 @@ STATE_FILE        = os.environ.get('STATE_FILE', 'kw_state.json')  # 일별 키�
 def load_config():
     config = {}
     for key in ['DART_API_KEY','NAVER_CLIENT_ID','NAVER_CLIENT_SECRET',
-                'TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID']:
+                'TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','TELEGRAM_CHAT_ID_TLC']:
         val = os.environ.get(key, '')
         if val:
             config[key] = val
@@ -112,6 +112,29 @@ SURGE_CONTEXT = [
 ]
 # 하위호환 — 전체 합친 리스트
 SURGE_KEYWORDS = SURGE_STRONG + SURGE_CONTEXT
+
+# ★★ [v6] 공개 채널(The Line Capital) 전용 설정 ─────────────────────────
+#  공개 채널은 score>=100 만 발송. 단 아래 고신호 키워드는 70점 이상이면 예외 허용.
+#  (특징주·급등·상한가류 context 키워드는 공개 채널에 일절 사용 안 함)
+PUBLIC_STRONG = [
+    '대규모 수주', '조 단위', '조 단위 계약',
+    'FDA 승인', '품목허가',
+    '자사주 소각', '무상증자', '공개매수',
+    '임상성공', '임상 성공', '임상통과',
+]
+TLC_SCORE_MIN     = 100    # 공개 채널 기본 점수 컷
+TLC_STRONG_MIN    = 70     # PUBLIC_STRONG 키워드는 이 점수 이상이면 예외 발송 (0으로 두면 점수무관)
+TLC_MAX_PER_SEND  = 3      # 1회 발송 최대 건수
+TLC_MAX_PER_DAY   = 30     # 하루 발송 최대 건수
+TLC_DEDUP_JACCARD = 0.5    # 제목 유사도 이 이상이면 같은 뉴스/같은 종목으로 보고 중복 제외
+TLC_HEADER        = "📌 오늘의 주요 재료 뉴스"
+DISCLAIMER = (
+    "\n\n--------------------------------\n"
+    "※ 본 자료는 정보 제공 목적이며, 특정 종목의\n"
+    "   매수·매도 추천이 아닙니다.\n"
+    "   투자 판단과 결과는 투자자 본인 책임입니다.\n"
+    "--------------------------------"
+)
 
 # ★ 블랙리스트 — 제목에 이게 있으면 SURGE라도 무조건 차단 (낚시·부정·잡주)
 BLACKLIST_KEYWORDS = [
@@ -500,33 +523,6 @@ def send_telegram(bot_token, chat_id, message):
     except Exception as e:
         log(f"  [텔레그램] 오류: {str(e)[:50]}")
 
-    # [발송 2] The Line Capital 공개 채널 + 면책 (자기완결형 — 조용히 실패 안 함)
-    tlc_chat_id = os.environ.get('TELEGRAM_CHAT_ID_TLC', '').strip()
-    if not tlc_chat_id:
-        log("  [텔레그램] TLC: chat_id 환경변수 없음 — 새 채널 스킵")
-        return
-    disclaimer = (
-        "\n\n--------------------------------\n"
-        "※ 본 자료는 정보 제공 목적이며, 특정 종목의\n"
-        "   매수·매도 추천이 아닙니다.\n"
-        "   투자 판단과 결과는 투자자 본인 책임입니다.\n"
-        "--------------------------------"
-    )
-    tlc_msg = message if "정보 제공 목적" in message else (message + disclaimer)
-    try:
-        r2 = requests.post(
-            f'https://api.telegram.org/bot{bot_token}/sendMessage',
-            json={'chat_id': tlc_chat_id, 'text': tlc_msg, 'parse_mode': 'HTML',
-                  'disable_web_page_preview': False},
-            timeout=10
-        )
-        if r2.status_code == 200:
-            log("  [텔레그램] The Line Capital 발송 완료")
-        else:
-            log(f"  [텔레그램] TLC 오류: {r2.status_code} {r2.text[:120]}")
-    except Exception as e:
-        log(f"  [텔레그램] TLC 예외: {str(e)[:80]}")
-
 def is_us_stock(title):
     """미국 종목 뉴스인지 판별 — 영문 티커(괄호) 또는 미국 기업/거래소 표시"""
     # (1) 영문 티커 패턴: 엑셀릭시스(EXEL), ST마이크로(STM) 등 — 괄호 안 영대문자 2~5자
@@ -685,6 +681,7 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
     naver_sec = cfg.get('NAVER_CLIENT_SECRET', '')
     bot_token = cfg.get('TELEGRAM_BOT_TOKEN', '')
     chat_id   = cfg.get('TELEGRAM_CHAT_ID', '')
+    tlc_chat_id = cfg.get('TELEGRAM_CHAT_ID_TLC', '')   # [v6] 공개 채널
 
     now     = datetime.datetime.now(KST)              # (4) KST
     today   = now.strftime('%Y-%m-%d')
@@ -695,6 +692,11 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
     if mem.get('seen_date') != today:
         mem['seen_date'] = today
         mem['seen_today'] = set()
+    # [v6] 공개 채널(TLC) 일일 카운터/중복기억 리셋
+    if mem.get('tlc_date') != today:
+        mem['tlc_date'] = today
+        mem['tlc_count'] = 0
+        mem['tlc_kwsets'] = []
 
     # 수집
     all_news = []
@@ -782,6 +784,38 @@ def run_cycle(cfg, sent_titles, cycle, state, mem):
             except Exception as e:
                 log(f"  [추적로그] 스킵: {str(e)[:40]}")
 
+        # ★★ [v6] 공개 채널(The Line Capital) 별도 발송 ───────────────────
+        #   기준: score>=100  OR  (PUBLIC_STRONG 키워드 AND score>=70)
+        #   + 같은뉴스/같은종목(제목 유사도) 중복 제외
+        #   + 1회 최대 3건 · 하루 최대 30건 상한
+        #   + 헤더 "📌 오늘의 주요 재료 뉴스" + 면책 부착
+        if bot_token and tlc_chat_id:
+            def has_public_strong(news):
+                t = news.get('title', '')
+                return any(kw in t for kw in PUBLIC_STRONG)
+            public_cands = [n for n in new_scored
+                            if n['score'] >= TLC_SCORE_MIN
+                            or (has_public_strong(n) and n['score'] >= TLC_STRONG_MIN)]
+            public_send = []
+            for n in public_cands:
+                if mem.get('tlc_count', 0) + len(public_send) >= TLC_MAX_PER_DAY:
+                    break
+                if len(public_send) >= TLC_MAX_PER_SEND:
+                    break
+                ks = n.get('kw_set') or set()
+                # 같은 종목/비슷한 제목이 오늘 공개채널에 이미 나갔으면 제외
+                if any(jaccard(ks, prev) >= TLC_DEDUP_JACCARD for prev in mem.get('tlc_kwsets', [])):
+                    continue
+                public_send.append(n)
+                mem.setdefault('tlc_kwsets', []).append(ks)
+            if public_send:
+                pub_msg = build_report(public_send, keyword_ranking, now_str, TLC_HEADER) + DISCLAIMER
+                send_telegram(bot_token, tlc_chat_id, pub_msg)
+                mem['tlc_count'] = mem.get('tlc_count', 0) + len(public_send)
+                for n in public_send:
+                    sent_titles.add(n['title'])
+                log(f"  → [공개] {TLC_HEADER} {len(public_send)}건 (오늘 누적 {mem['tlc_count']}/{TLC_MAX_PER_DAY})")
+
         # [v5] 신규성 기억 누적 — 이번 사이클 뉴스 키워드집합을 최근목록에 추가
         from collections import deque as _deque
         if not isinstance(mem.get('recent_kw_sets'), _deque):
@@ -837,7 +871,7 @@ def main():
     log(f"  DART: {'OK' if cfg.get('DART_API_KEY') else 'MISSING'}")
     log(f"  네이버: {'OK' if cfg.get('NAVER_CLIENT_ID') else 'MISSING'}")
     log(f"  텔레그램: {'OK' if cfg.get('TELEGRAM_BOT_TOKEN') else 'MISSING'}")
-    log(f"  TLC 채널: {'OK' if os.environ.get('TELEGRAM_CHAT_ID_TLC') else 'MISSING'}")
+    log(f"  TLC 채널: {'OK' if cfg.get('TELEGRAM_CHAT_ID_TLC') else 'MISSING'}")
 
     state = load_state()                       # (6) 일별 키워드 누적 로드
     days = len(state.get('daily', {}))
