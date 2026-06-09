@@ -474,6 +474,38 @@ def get_theme_stocks(themes):
         stocks.extend(fallback.get(theme, [])[:3])
     return list(set(stocks))[:5]
 
+def related_stocks_for_news(n):
+    """뉴스 1건 → 관련종목 이름 리스트.
+       우선순위:
+         ① 제목에 '실제로 등장한 회사명' (stock_db.name2code 직접 일치) — 식상함 해결의 핵심
+         ② DB 테마 소속주 (하드코딩 3종목보다 폭넓음)
+         ③ DB가 없거나 못 찾으면 기존 하드코딩 폴백(get_theme_stocks)
+       ※ DB가 없어도 안 깨지게 전부 try/None 가드."""
+    # ① 제목 키워드 중 DB에 '회사 이름'으로 등록된 게 있으면 그걸 우선 (예: '엑셀세라퓨틱스')
+    if STOCK_DB and stock_db:
+        try:
+            n2c = STOCK_DB.get('name2code', {})
+            named = [kw for kw in (n.get('kw_set') or []) if kw in n2c]
+            if named:
+                return named[:4]
+        except Exception:
+            pass
+        # ② 제목에 회사명이 안 떴으면 → DB의 테마 소속주 (하드코딩보다 다양)
+        try:
+            out, seen = [], set()
+            for th in (n.get('themes') or [])[:2]:
+                for s in stock_db.theme_members(STOCK_DB, th, limit=8):
+                    if s['name'] not in seen:
+                        seen.add(s['name']); out.append(s['name'])
+            if out:
+                return out[:4]
+        except Exception:
+            pass
+    # ③ 최후 폴백 — 기존 하드코딩 명단
+    if n.get('themes'):
+        return get_theme_stocks(n['themes'])[:4]
+    return []
+
 def score_news(news_list, word_count, word_sources, recent_kw_sets=None):
     scored = []
     for n in news_list:
@@ -590,10 +622,9 @@ def build_report(scored_news, keyword_ranking, now_str, header):
         us_tag = " 🇺🇸<b>[미국]</b>" if is_us_stock(n['title']) else ""
         msg += f"\n\n{i}. {time_tag} <b>{title_safe}</b>{us_tag}"
         msg += f"\n   점수:{n['score']} | {theme_str} | {bonus_str}"
-        if n['themes']:
-            stocks = get_theme_stocks(n['themes'])
-            if stocks:
-                msg += f"\n   관련종목: {html.escape(' '.join(stocks[:4]))}"
+        stocks = related_stocks_for_news(n)   # ① 제목 등장 회사 → ② DB 테마주 → ③ 하드코딩
+        if stocks:
+            msg += f"\n   관련종목: {html.escape(' '.join(stocks[:4]))}"
         if n.get('url'):
             url_safe = html.escape(n['url'], quote=True)     # (5) URL escape
             msg += f"\n   <a href='{url_safe}'>기사 보기</a>"
