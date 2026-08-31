@@ -1,6 +1,26 @@
 {
   "제약": [
     {
+      "code": "001060",
+      "name": "JW중외제약",
+      "score": 2.92,
+      "avg_ret": 2.92,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "346010",
+      "name": "타이드",
+      "score": 2.92,
+      "avg_ret": 2.92,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "069620",
       "name": "대웅제약",
       "score": 2.33,
@@ -159,7 +179,27 @@
       "avg_ret": 3.03,
       "hit_rate": 1.0,
       "n": 1,
-      "best_lag": "3d",
+      "best_lag": "5d",
+      "reliable": false
+    },
+    {
+      "code": "001060",
+      "name": "JW중외제약",
+      "score": 2.92,
+      "avg_ret": 2.92,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "346010",
+      "name": "타이드",
+      "score": 2.92,
+      "avg_ret": 2.92,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
       "reliable": false
     },
     {
@@ -190,6 +230,16 @@
       "hit_rate": 1.0,
       "n": 1,
       "best_lag": "3d",
+      "reliable": false
+    },
+    {
+      "code": "078930",
+      "name": "GS",
+      "score": 0.37,
+      "avg_ret": 0.37,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
       "reliable": false
     },
     {
@@ -309,17 +359,7 @@
       "avg_ret": -2.46,
       "hit_rate": 0.0,
       "n": 1,
-      "best_lag": "3d",
-      "reliable": false
-    },
-    {
-      "code": "174900",
-      "name": "앱클론",
-      "score": -1.41,
-      "avg_ret": -2.81,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "1d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -363,10 +403,30 @@
       "reliable": true
     },
     {
+      "code": "365270",
+      "name": "큐라클",
+      "score": -2.22,
+      "avg_ret": -4.44,
+      "hit_rate": 0.0,
+      "n": 4,
+      "best_lag": "1d",
+      "reliable": true
+    },
+    {
+      "code": "141080",
+      "name": "리가켐바이오",
+      "score": -2.23,
+      "avg_ret": -4.46,
+      "hit_rate": 0.0,
+      "n": 2,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "326030",
       "name": "SK바이오팜",
-      "score": -1.88,
-      "avg_ret": -3.76,
+      "score": -2.24,
+      "avg_ret": -4.48,
       "hit_rate": 0.0,
       "n": 87,
       "best_lag": "1d",
@@ -375,20 +435,10 @@
     {
       "code": "034730",
       "name": "SK",
-      "score": -1.9,
-      "avg_ret": -3.8,
-      "hit_rate": 0.0,
-      "n": 88,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
-      "code": "365270",
-      "name": "큐라클",
-      "score": -1.91,
-      "avg_ret": -3.81,
-      "hit_rate": 0.0,
-      "n": 4,
+      "score": -2.25,
+      "avg_ret": -4.46,
+      "hit_rate": 0.01,
+      "n": 89,
       "best_lag": "1d",
       "reliable": true
     },
@@ -459,7 +509,7 @@
       "avg_ret": -5.88,
       "hit_rate": 0.06,
       "n": 35,
-      "best_lag": "5d",
+      "best_lag": "3d",
       "reliable": true
     },
     {
@@ -523,6 +573,16 @@
       "reliable": false
     },
     {
+      "code": "174900",
+      "name": "앱클론",
+      "score": -6.76,
+      "avg_ret": -13.53,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "226950",
       "name": "올릭스",
       "score": -6.95,
@@ -555,24 +615,24 @@
       "reliable": false
     },
     {
-      "code": "222800",
-      "name": "심텍",
-      "score": 12.76,
-      "avg_ret": 12.76,
-      "hit_rate": 1.0,
-      "n": 3,
-      "best_lag": "3d",
-      "reliable": true
-    },
-    {
       "code": "072770",
       "name": "멤레이비티",
       "score": 11.65,
       "avg_ret": 11.65,
       "hit_rate": 1.0,
       "n": 1,
-      "best_lag": "3d",
+      "best_lag": "5d",
       "reliable": false
+    },
+    {
+      "code": "222800",
+      "name": "심텍",
+      "score": 11.43,
+      "avg_ret": 11.43,
+      "hit_rate": 1.0,
+      "n": 4,
+      "best_lag": "5d",
+      "reliable": true
     },
     {
       "code": "490470",
@@ -625,16 +685,6 @@
       "reliable": false
     },
     {
-      "code": "095610",
-      "name": "테스",
-      "score": 8.06,
-      "avg_ret": 8.06,
-      "hit_rate": 1.0,
-      "n": 6,
-      "best_lag": "3d",
-      "reliable": true
-    },
-    {
       "code": "095340",
       "name": "ISC",
       "score": 7.92,
@@ -645,14 +695,14 @@
       "reliable": false
     },
     {
-      "code": "078930",
-      "name": "GS",
-      "score": 7.5,
-      "avg_ret": 7.5,
+      "code": "095610",
+      "name": "테스",
+      "score": 7.64,
+      "avg_ret": 7.64,
       "hit_rate": 1.0,
-      "n": 1,
+      "n": 6,
       "best_lag": "3d",
-      "reliable": false
+      "reliable": true
     },
     {
       "code": "067170",
@@ -661,7 +711,7 @@
       "avg_ret": 7.5,
       "hit_rate": 1.0,
       "n": 1,
-      "best_lag": "3d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -685,6 +735,16 @@
       "reliable": false
     },
     {
+      "code": "051910",
+      "name": "LG화학",
+      "score": 6.26,
+      "avg_ret": 6.26,
+      "hit_rate": 1.0,
+      "n": 10,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
       "code": "058470",
       "name": "리노공업",
       "score": 5.56,
@@ -693,16 +753,6 @@
       "n": 1,
       "best_lag": "3d",
       "reliable": false
-    },
-    {
-      "code": "006260",
-      "name": "LS",
-      "score": 5.15,
-      "avg_ret": 5.54,
-      "hit_rate": 0.86,
-      "n": 35,
-      "best_lag": "3d",
-      "reliable": true
     },
     {
       "code": "300120",
@@ -725,14 +775,34 @@
       "reliable": false
     },
     {
-      "code": "051910",
-      "name": "LG화학",
-      "score": 4.17,
-      "avg_ret": 4.17,
-      "hit_rate": 1.0,
-      "n": 10,
-      "best_lag": "1d",
+      "code": "006260",
+      "name": "LS",
+      "score": 4.83,
+      "avg_ret": 5.28,
+      "hit_rate": 0.83,
+      "n": 36,
+      "best_lag": "3d",
       "reliable": true
+    },
+    {
+      "code": "294630",
+      "name": "서남",
+      "score": 4.26,
+      "avg_ret": 4.26,
+      "hit_rate": 1.0,
+      "n": 2,
+      "best_lag": "3d",
+      "reliable": false
+    },
+    {
+      "code": "356860",
+      "name": "티엘비",
+      "score": 4.2,
+      "avg_ret": 4.2,
+      "hit_rate": 1.0,
+      "n": 2,
+      "best_lag": "1d",
+      "reliable": false
     },
     {
       "code": "444530",
@@ -765,6 +835,16 @@
       "reliable": false
     },
     {
+      "code": "011930",
+      "name": "신성이엔지",
+      "score": 2.83,
+      "avg_ret": 2.83,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "3d",
+      "reliable": false
+    },
+    {
       "code": "074600",
       "name": "원익QnC",
       "score": 2.57,
@@ -785,43 +865,13 @@
       "reliable": false
     },
     {
-      "code": "052690",
-      "name": "한전기술",
-      "score": 2.35,
-      "avg_ret": 2.35,
-      "hit_rate": 1.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
-      "code": "015760",
-      "name": "한전",
-      "score": 2.35,
-      "avg_ret": 2.35,
-      "hit_rate": 1.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
-      "code": "356860",
-      "name": "티엘비",
-      "score": 2.33,
-      "avg_ret": 2.33,
-      "hit_rate": 1.0,
-      "n": 1,
-      "best_lag": "3d",
-      "reliable": false
-    },
-    {
-      "code": "294630",
-      "name": "서남",
-      "score": 1.67,
-      "avg_ret": 1.67,
-      "hit_rate": 1.0,
+      "code": "078930",
+      "name": "GS",
+      "score": 1.95,
+      "avg_ret": 2.6,
+      "hit_rate": 0.5,
       "n": 2,
-      "best_lag": "1d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -835,10 +885,10 @@
       "reliable": true
     },
     {
-      "code": "011930",
-      "name": "신성이엔지",
-      "score": 1.63,
-      "avg_ret": 1.63,
+      "code": "188260",
+      "name": "세니젠",
+      "score": 1.62,
+      "avg_ret": 1.62,
       "hit_rate": 1.0,
       "n": 1,
       "best_lag": "1d",
@@ -895,6 +945,16 @@
       "reliable": false
     },
     {
+      "code": "004830",
+      "name": "덕성",
+      "score": 0.59,
+      "avg_ret": 0.59,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "009270",
       "name": "신원",
       "score": 0.53,
@@ -925,20 +985,10 @@
       "reliable": false
     },
     {
-      "code": "017940",
-      "name": "E1",
-      "score": 0.36,
-      "avg_ret": 0.36,
-      "hit_rate": 1.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
       "code": "040300",
       "name": "YTN",
-      "score": 0.25,
-      "avg_ret": 0.33,
+      "score": 0.22,
+      "avg_ret": 0.3,
       "hit_rate": 0.5,
       "n": 2,
       "best_lag": "3d",
@@ -961,7 +1011,7 @@
       "avg_ret": 0.13,
       "hit_rate": 1.0,
       "n": 1,
-      "best_lag": "1d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -975,32 +1025,22 @@
       "reliable": false
     },
     {
-      "code": "014790",
-      "name": "HL D&I",
-      "score": -0.19,
-      "avg_ret": -0.38,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
-      "code": "053580",
-      "name": "웹케시",
-      "score": -0.35,
-      "avg_ret": -0.7,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
       "code": "228670",
       "name": "레이",
-      "score": -0.38,
-      "avg_ret": -0.48,
-      "hit_rate": 0.58,
+      "score": -0.28,
+      "avg_ret": -0.33,
+      "hit_rate": 0.67,
       "n": 12,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
+      "code": "035720",
+      "name": "카카오",
+      "score": -0.33,
+      "avg_ret": -0.59,
+      "hit_rate": 0.11,
+      "n": 9,
       "best_lag": "3d",
       "reliable": true
     },
@@ -1042,16 +1082,6 @@
       "hit_rate": 0.0,
       "n": 2,
       "best_lag": "3d",
-      "reliable": false
-    },
-    {
-      "code": "035720",
-      "name": "카카오",
-      "score": -0.48,
-      "avg_ret": -0.96,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "1d",
       "reliable": false
     },
     {
@@ -1105,6 +1135,16 @@
       "reliable": false
     },
     {
+      "code": "017940",
+      "name": "E1",
+      "score": -0.81,
+      "avg_ret": -1.62,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "032280",
       "name": "삼일",
       "score": -0.82,
@@ -1112,6 +1152,16 @@
       "hit_rate": 0.0,
       "n": 2,
       "best_lag": "5d",
+      "reliable": false
+    },
+    {
+      "code": "053580",
+      "name": "웹케시",
+      "score": -0.91,
+      "avg_ret": -1.82,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
       "reliable": false
     },
     {
@@ -1135,10 +1185,10 @@
       "reliable": true
     },
     {
-      "code": "477850",
-      "name": "마키나락스",
-      "score": -1.19,
-      "avg_ret": -2.38,
+      "code": "006360",
+      "name": "GS건설",
+      "score": -1.15,
+      "avg_ret": -2.29,
       "hit_rate": 0.0,
       "n": 1,
       "best_lag": "1d",
@@ -1175,6 +1225,16 @@
       "reliable": false
     },
     {
+      "code": "014790",
+      "name": "HL D&I",
+      "score": -1.41,
+      "avg_ret": -2.82,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "486990",
       "name": "노타",
       "score": -1.62,
@@ -1183,6 +1243,26 @@
       "n": 3,
       "best_lag": "3d",
       "reliable": true
+    },
+    {
+      "code": "010120",
+      "name": "LS ELECTRIC",
+      "score": -1.63,
+      "avg_ret": -3.26,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "006400",
+      "name": "삼성SDI",
+      "score": -1.63,
+      "avg_ret": -3.26,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
     },
     {
       "code": "060900",
@@ -1205,22 +1285,22 @@
       "reliable": true
     },
     {
-      "code": "025560",
-      "name": "미래산업",
+      "code": "035420",
+      "name": "네이버",
       "score": -1.69,
-      "avg_ret": -3.38,
+      "avg_ret": -3.37,
       "hit_rate": 0.0,
-      "n": 6,
-      "best_lag": "5d",
+      "n": 44,
+      "best_lag": "3d",
       "reliable": true
     },
     {
-      "code": "035420",
-      "name": "네이버",
-      "score": -1.7,
-      "avg_ret": -3.33,
-      "hit_rate": 0.02,
-      "n": 44,
+      "code": "189330",
+      "name": "씨이랩",
+      "score": -1.69,
+      "avg_ret": -3.38,
+      "hit_rate": 0.0,
+      "n": 3,
       "best_lag": "1d",
       "reliable": true
     },
@@ -1255,16 +1335,6 @@
       "reliable": true
     },
     {
-      "code": "365270",
-      "name": "큐라클",
-      "score": -1.91,
-      "avg_ret": -3.81,
-      "hit_rate": 0.0,
-      "n": 4,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
       "code": "044180",
       "name": "KD",
       "score": -1.92,
@@ -1281,7 +1351,7 @@
       "avg_ret": -4.04,
       "hit_rate": 0.0,
       "n": 2,
-      "best_lag": "1d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -1295,8 +1365,48 @@
       "reliable": false
     },
     {
+      "code": "025560",
+      "name": "미래산업",
+      "score": -2.17,
+      "avg_ret": -4.33,
+      "hit_rate": 0.0,
+      "n": 6,
+      "best_lag": "5d",
+      "reliable": true
+    },
+    {
+      "code": "003550",
+      "name": "LG",
+      "score": -2.19,
+      "avg_ret": -3.1,
+      "hit_rate": 0.41,
+      "n": 107,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
+      "code": "365270",
+      "name": "큐라클",
+      "score": -2.22,
+      "avg_ret": -4.44,
+      "hit_rate": 0.0,
+      "n": 4,
+      "best_lag": "1d",
+      "reliable": true
+    },
+    {
       "code": "162120",
       "name": "루켄테크놀러지스",
+      "score": -2.28,
+      "avg_ret": -4.56,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "477850",
+      "name": "마키나락스",
       "score": -2.28,
       "avg_ret": -4.56,
       "hit_rate": 0.0,
@@ -1311,6 +1421,16 @@
       "avg_ret": -3.1,
       "hit_rate": 0.5,
       "n": 6,
+      "best_lag": "1d",
+      "reliable": true
+    },
+    {
+      "code": "032640",
+      "name": "LG유플러스",
+      "score": -2.41,
+      "avg_ret": -4.82,
+      "hit_rate": 0.0,
+      "n": 19,
       "best_lag": "1d",
       "reliable": true
     },
@@ -1341,7 +1461,7 @@
       "avg_ret": -4.91,
       "hit_rate": 0.0,
       "n": 1,
-      "best_lag": "3d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -1355,16 +1475,6 @@
       "reliable": false
     },
     {
-      "code": "003550",
-      "name": "LG",
-      "score": -2.51,
-      "avg_ret": -3.49,
-      "hit_rate": 0.44,
-      "n": 101,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
       "code": "468530",
       "name": "프로티나",
       "score": -2.52,
@@ -1375,16 +1485,6 @@
       "reliable": false
     },
     {
-      "code": "032640",
-      "name": "LG유플러스",
-      "score": -2.54,
-      "avg_ret": -5.08,
-      "hit_rate": 0.0,
-      "n": 18,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
       "code": "326030",
       "name": "SK바이오팜",
       "score": -2.55,
@@ -1393,6 +1493,16 @@
       "n": 1,
       "best_lag": "1d",
       "reliable": false
+    },
+    {
+      "code": "000660",
+      "name": "SK하이닉스",
+      "score": -2.58,
+      "avg_ret": -4.44,
+      "hit_rate": 0.16,
+      "n": 91,
+      "best_lag": "3d",
+      "reliable": true
     },
     {
       "code": "011070",
@@ -1435,6 +1545,16 @@
       "reliable": false
     },
     {
+      "code": "452400",
+      "name": "이닉스",
+      "score": -2.62,
+      "avg_ret": -4.51,
+      "hit_rate": 0.16,
+      "n": 93,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
       "code": "454910",
       "name": "두산로보틱스",
       "score": -2.62,
@@ -1455,6 +1575,16 @@
       "reliable": false
     },
     {
+      "code": "005380",
+      "name": "현대차",
+      "score": -2.69,
+      "avg_ret": -5.39,
+      "hit_rate": 0.0,
+      "n": 23,
+      "best_lag": "1d",
+      "reliable": true
+    },
+    {
       "code": "001040",
       "name": "CJ",
       "score": -2.71,
@@ -1465,34 +1595,24 @@
       "reliable": true
     },
     {
-      "code": "005380",
-      "name": "현대차",
-      "score": -2.75,
-      "avg_ret": -5.51,
-      "hit_rate": 0.0,
-      "n": 23,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
-      "code": "030200",
-      "name": "KT",
-      "score": -2.8,
-      "avg_ret": -4.06,
-      "hit_rate": 0.38,
-      "n": 47,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
-      "code": "000660",
-      "name": "SK하이닉스",
+      "code": "052690",
+      "name": "한전기술",
       "score": -2.83,
-      "avg_ret": -5.5,
-      "hit_rate": 0.03,
-      "n": 76,
-      "best_lag": "3d",
-      "reliable": true
+      "avg_ret": -5.67,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "015760",
+      "name": "한전",
+      "score": -2.83,
+      "avg_ret": -5.67,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
     },
     {
       "code": "067630",
@@ -1515,12 +1635,12 @@
       "reliable": true
     },
     {
-      "code": "452400",
-      "name": "이닉스",
-      "score": -2.86,
-      "avg_ret": -5.56,
-      "hit_rate": 0.03,
-      "n": 78,
+      "code": "030200",
+      "name": "KT",
+      "score": -2.87,
+      "avg_ret": -4.16,
+      "hit_rate": 0.38,
+      "n": 48,
       "best_lag": "3d",
       "reliable": true
     },
@@ -1565,6 +1685,16 @@
       "reliable": false
     },
     {
+      "code": "005930",
+      "name": "삼전",
+      "score": -3.0,
+      "avg_ret": -4.55,
+      "hit_rate": 0.32,
+      "n": 65,
+      "best_lag": "1d",
+      "reliable": true
+    },
+    {
       "code": "476080",
       "name": "M83",
       "score": -3.04,
@@ -1575,22 +1705,22 @@
       "reliable": false
     },
     {
+      "code": "000950",
+      "name": "전방",
+      "score": -3.16,
+      "avg_ret": -5.69,
+      "hit_rate": 0.11,
+      "n": 19,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
       "code": "026960",
       "name": "동서",
       "score": -3.19,
       "avg_ret": -4.8,
       "hit_rate": 0.33,
       "n": 3,
-      "best_lag": "3d",
-      "reliable": true
-    },
-    {
-      "code": "000950",
-      "name": "전방",
-      "score": -3.22,
-      "avg_ret": -6.07,
-      "hit_rate": 0.06,
-      "n": 18,
       "best_lag": "3d",
       "reliable": true
     },
@@ -1605,6 +1735,16 @@
       "reliable": true
     },
     {
+      "code": "034730",
+      "name": "SK",
+      "score": -3.32,
+      "avg_ret": -6.14,
+      "hit_rate": 0.08,
+      "n": 276,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
       "code": "128940",
       "name": "한미약품",
       "score": -3.33,
@@ -1613,16 +1753,6 @@
       "n": 1,
       "best_lag": "3d",
       "reliable": false
-    },
-    {
-      "code": "034730",
-      "name": "SK",
-      "score": -3.39,
-      "avg_ret": -6.64,
-      "hit_rate": 0.02,
-      "n": 257,
-      "best_lag": "3d",
-      "reliable": true
     },
     {
       "code": "091970",
@@ -1642,16 +1772,6 @@
       "hit_rate": 0.0,
       "n": 38,
       "best_lag": "3d",
-      "reliable": true
-    },
-    {
-      "code": "005930",
-      "name": "삼전",
-      "score": -3.71,
-      "avg_ret": -7.42,
-      "hit_rate": 0.0,
-      "n": 43,
-      "best_lag": "1d",
       "reliable": true
     },
     {
@@ -1817,6 +1937,16 @@
       "reliable": false
     },
     {
+      "code": "228670",
+      "name": "레이",
+      "score": 0.54,
+      "avg_ret": 0.54,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "3d",
+      "reliable": false
+    },
+    {
       "code": "282880",
       "name": "코윈테크",
       "score": 0.2,
@@ -1864,16 +1994,6 @@
       "hit_rate": 0.0,
       "n": 1,
       "best_lag": "3d",
-      "reliable": false
-    },
-    {
-      "code": "228670",
-      "name": "레이",
-      "score": -0.59,
-      "avg_ret": -1.18,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "1d",
       "reliable": false
     },
     {
@@ -2139,32 +2259,32 @@
       "reliable": true
     },
     {
-      "code": "006400",
-      "name": "삼성SDI",
-      "score": 10.49,
-      "avg_ret": 10.49,
-      "hit_rate": 1.0,
-      "n": 1,
-      "best_lag": "3d",
-      "reliable": false
-    },
-    {
-      "code": "095610",
-      "name": "테스",
-      "score": 8.53,
-      "avg_ret": 8.53,
-      "hit_rate": 1.0,
-      "n": 5,
-      "best_lag": "3d",
-      "reliable": true
-    },
-    {
       "code": "084370",
       "name": "유진테크",
       "score": 7.4,
       "avg_ret": 8.86,
       "hit_rate": 0.67,
       "n": 3,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
+      "code": "095610",
+      "name": "테스",
+      "score": 6.48,
+      "avg_ret": 7.08,
+      "hit_rate": 0.83,
+      "n": 6,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
+      "code": "051910",
+      "name": "LG화학",
+      "score": 6.26,
+      "avg_ret": 6.26,
+      "hit_rate": 1.0,
+      "n": 10,
       "best_lag": "3d",
       "reliable": true
     },
@@ -2209,14 +2329,14 @@
       "reliable": true
     },
     {
-      "code": "051910",
-      "name": "LG화학",
-      "score": 4.17,
-      "avg_ret": 4.17,
+      "code": "294630",
+      "name": "서남",
+      "score": 4.26,
+      "avg_ret": 4.26,
       "hit_rate": 1.0,
-      "n": 10,
-      "best_lag": "1d",
-      "reliable": true
+      "n": 2,
+      "best_lag": "3d",
+      "reliable": false
     },
     {
       "code": "027580",
@@ -2249,6 +2369,26 @@
       "reliable": false
     },
     {
+      "code": "011930",
+      "name": "신성이엔지",
+      "score": 2.83,
+      "avg_ret": 2.83,
+      "hit_rate": 1.0,
+      "n": 1,
+      "best_lag": "3d",
+      "reliable": false
+    },
+    {
+      "code": "006400",
+      "name": "삼성SDI",
+      "score": 2.71,
+      "avg_ret": 3.62,
+      "hit_rate": 0.5,
+      "n": 2,
+      "best_lag": "5d",
+      "reliable": false
+    },
+    {
       "code": "074600",
       "name": "원익QnC",
       "score": 2.57,
@@ -2259,24 +2399,14 @@
       "reliable": false
     },
     {
-      "code": "294630",
-      "name": "서남",
-      "score": 1.67,
-      "avg_ret": 1.67,
-      "hit_rate": 1.0,
-      "n": 2,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
-      "code": "011930",
-      "name": "신성이엔지",
-      "score": 1.63,
-      "avg_ret": 1.63,
-      "hit_rate": 1.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
+      "code": "003550",
+      "name": "LG",
+      "score": 1.64,
+      "avg_ret": 1.86,
+      "hit_rate": 0.76,
+      "n": 17,
+      "best_lag": "3d",
+      "reliable": true
     },
     {
       "code": "420770",
@@ -2305,27 +2435,17 @@
       "avg_ret": 0.49,
       "hit_rate": 1.0,
       "n": 1,
+      "best_lag": "5d",
+      "reliable": false
+    },
+    {
+      "code": "228670",
+      "name": "레이",
+      "score": 0.41,
+      "avg_ret": 0.46,
+      "hit_rate": 0.8,
+      "n": 5,
       "best_lag": "3d",
-      "reliable": false
-    },
-    {
-      "code": "017940",
-      "name": "E1",
-      "score": 0.36,
-      "avg_ret": 0.36,
-      "hit_rate": 1.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
-      "code": "003550",
-      "name": "LG",
-      "score": 0.33,
-      "avg_ret": 0.38,
-      "hit_rate": 0.76,
-      "n": 17,
-      "best_lag": "1d",
       "reliable": true
     },
     {
@@ -2337,16 +2457,6 @@
       "n": 2,
       "best_lag": "3d",
       "reliable": false
-    },
-    {
-      "code": "228670",
-      "name": "레이",
-      "score": 0.1,
-      "avg_ret": 0.12,
-      "hit_rate": 0.6,
-      "n": 5,
-      "best_lag": "3d",
-      "reliable": true
     },
     {
       "code": "044180",
@@ -2369,16 +2479,6 @@
       "reliable": false
     },
     {
-      "code": "014790",
-      "name": "HL D&I",
-      "score": -0.19,
-      "avg_ret": -0.38,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
       "code": "122640",
       "name": "예스티",
       "score": -0.28,
@@ -2386,16 +2486,6 @@
       "hit_rate": 0.0,
       "n": 4,
       "best_lag": "3d",
-      "reliable": true
-    },
-    {
-      "code": "036190",
-      "name": "금화피에스시",
-      "score": -0.36,
-      "avg_ret": -0.72,
-      "hit_rate": 0.0,
-      "n": 3,
-      "best_lag": "1d",
       "reliable": true
     },
     {
@@ -2417,6 +2507,16 @@
       "n": 1,
       "best_lag": "3d",
       "reliable": false
+    },
+    {
+      "code": "036190",
+      "name": "금화피에스시",
+      "score": -0.43,
+      "avg_ret": -0.86,
+      "hit_rate": 0.0,
+      "n": 3,
+      "best_lag": "1d",
+      "reliable": true
     },
     {
       "code": "000990",
@@ -2449,20 +2549,50 @@
       "reliable": false
     },
     {
-      "code": "035420",
-      "name": "NAVER",
-      "score": -0.45,
-      "avg_ret": -0.89,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "3d",
-      "reliable": false
-    },
-    {
       "code": "007980",
       "name": "TP",
       "score": -0.52,
       "avg_ret": -1.04,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "035420",
+      "name": "NAVER",
+      "score": -0.62,
+      "avg_ret": -1.24,
+      "hit_rate": 0.0,
+      "n": 2,
+      "best_lag": "3d",
+      "reliable": false
+    },
+    {
+      "code": "017670",
+      "name": "SK텔레콤",
+      "score": -0.8,
+      "avg_ret": -1.59,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "288980",
+      "name": "모아데이타",
+      "score": -0.8,
+      "avg_ret": -1.59,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "017940",
+      "name": "E1",
+      "score": -0.81,
+      "avg_ret": -1.62,
       "hit_rate": 0.0,
       "n": 1,
       "best_lag": "1d",
@@ -2479,6 +2609,16 @@
       "reliable": true
     },
     {
+      "code": "000950",
+      "name": "전방",
+      "score": -1.24,
+      "avg_ret": -1.65,
+      "hit_rate": 0.5,
+      "n": 4,
+      "best_lag": "5d",
+      "reliable": true
+    },
+    {
       "code": "084850",
       "name": "아이티엠반도체",
       "score": -1.34,
@@ -2489,10 +2629,40 @@
       "reliable": false
     },
     {
+      "code": "014790",
+      "name": "HL D&I",
+      "score": -1.41,
+      "avg_ret": -2.82,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "159010",
       "name": "아스플로",
       "score": -1.42,
       "avg_ret": -2.84,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "010120",
+      "name": "LS ELECTRIC",
+      "score": -1.63,
+      "avg_ret": -3.26,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "006260",
+      "name": "LS",
+      "score": -1.63,
+      "avg_ret": -3.26,
       "hit_rate": 0.0,
       "n": 1,
       "best_lag": "1d",
@@ -2509,33 +2679,13 @@
       "reliable": false
     },
     {
-      "code": "187870",
-      "name": "디바이스",
-      "score": -1.71,
-      "avg_ret": -2.14,
-      "hit_rate": 0.6,
-      "n": 5,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
-      "code": "000950",
-      "name": "전방",
-      "score": -1.72,
-      "avg_ret": -2.59,
-      "hit_rate": 0.33,
-      "n": 3,
-      "best_lag": "5d",
-      "reliable": true
-    },
-    {
       "code": "383310",
       "name": "에코프로에이치엔",
       "score": -1.78,
       "avg_ret": -2.13,
       "hit_rate": 0.67,
       "n": 3,
-      "best_lag": "1d",
+      "best_lag": "5d",
       "reliable": true
     },
     {
@@ -2545,7 +2695,7 @@
       "avg_ret": -2.13,
       "hit_rate": 0.67,
       "n": 3,
-      "best_lag": "1d",
+      "best_lag": "5d",
       "reliable": true
     },
     {
@@ -2556,6 +2706,16 @@
       "hit_rate": 0.08,
       "n": 24,
       "best_lag": "3d",
+      "reliable": true
+    },
+    {
+      "code": "187870",
+      "name": "디바이스",
+      "score": -1.82,
+      "avg_ret": -2.6,
+      "hit_rate": 0.4,
+      "n": 5,
+      "best_lag": "1d",
       "reliable": true
     },
     {
@@ -2585,7 +2745,7 @@
       "avg_ret": -4.04,
       "hit_rate": 0.0,
       "n": 1,
-      "best_lag": "1d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -2597,16 +2757,6 @@
       "n": 1,
       "best_lag": "1d",
       "reliable": false
-    },
-    {
-      "code": "025560",
-      "name": "미래산업",
-      "score": -2.03,
-      "avg_ret": -4.06,
-      "hit_rate": 0.0,
-      "n": 5,
-      "best_lag": "1d",
-      "reliable": true
     },
     {
       "code": "011070",
@@ -2639,6 +2789,26 @@
       "reliable": false
     },
     {
+      "code": "000660",
+      "name": "SK하이닉스",
+      "score": -2.29,
+      "avg_ret": -3.76,
+      "hit_rate": 0.22,
+      "n": 146,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
+      "code": "452400",
+      "name": "이닉스",
+      "score": -2.29,
+      "avg_ret": -3.76,
+      "hit_rate": 0.22,
+      "n": 145,
+      "best_lag": "3d",
+      "reliable": true
+    },
+    {
       "code": "302430",
       "name": "이노메트리",
       "score": -2.34,
@@ -2649,42 +2819,32 @@
       "reliable": false
     },
     {
-      "code": "000660",
-      "name": "SK하이닉스",
-      "score": -2.6,
-      "avg_ret": -4.95,
-      "hit_rate": 0.05,
-      "n": 116,
-      "best_lag": "3d",
-      "reliable": true
-    },
-    {
-      "code": "452400",
-      "name": "이닉스",
-      "score": -2.6,
-      "avg_ret": -4.95,
-      "hit_rate": 0.05,
-      "n": 115,
-      "best_lag": "3d",
-      "reliable": true
-    },
-    {
       "code": "005930",
-      "name": "삼전",
-      "score": -2.89,
-      "avg_ret": -4.89,
-      "hit_rate": 0.18,
-      "n": 82,
+      "name": "삼성전자",
+      "score": -2.47,
+      "avg_ret": -3.99,
+      "hit_rate": 0.24,
+      "n": 101,
+      "best_lag": "1d",
+      "reliable": true
+    },
+    {
+      "code": "025560",
+      "name": "미래산업",
+      "score": -2.6,
+      "avg_ret": -5.19,
+      "hit_rate": 0.0,
+      "n": 5,
       "best_lag": "1d",
       "reliable": true
     },
     {
       "code": "034730",
       "name": "SK",
-      "score": -2.91,
-      "avg_ret": -5.65,
-      "hit_rate": 0.03,
-      "n": 128,
+      "score": -2.69,
+      "avg_ret": -4.56,
+      "hit_rate": 0.18,
+      "n": 154,
       "best_lag": "3d",
       "reliable": true
     },
@@ -2871,6 +3031,16 @@
       "reliable": false
     },
     {
+      "code": "103140",
+      "name": "풍산",
+      "score": -2.6,
+      "avg_ret": -5.21,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
       "code": "036570",
       "name": "NC",
       "score": -4.42,
@@ -2963,16 +3133,6 @@
       "reliable": true
     },
     {
-      "code": "014790",
-      "name": "HL D&I",
-      "score": -0.19,
-      "avg_ret": -0.38,
-      "hit_rate": 0.0,
-      "n": 1,
-      "best_lag": "1d",
-      "reliable": false
-    },
-    {
       "code": "001440",
       "name": "대한전선",
       "score": -0.49,
@@ -2990,6 +3150,16 @@
       "hit_rate": 0.0,
       "n": 2,
       "best_lag": "3d",
+      "reliable": false
+    },
+    {
+      "code": "014790",
+      "name": "HL D&I",
+      "score": -1.41,
+      "avg_ret": -2.82,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
       "reliable": false
     },
     {
@@ -3015,16 +3185,6 @@
   ],
   "조선": [
     {
-      "code": "009540",
-      "name": "HD한국조선해양",
-      "score": -0.65,
-      "avg_ret": -1.29,
-      "hit_rate": 0.0,
-      "n": 3,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
       "code": "010140",
       "name": "삼성중공업",
       "score": -1.12,
@@ -3033,6 +3193,16 @@
       "n": 2,
       "best_lag": "1d",
       "reliable": false
+    },
+    {
+      "code": "009540",
+      "name": "HD한국조선해양",
+      "score": -1.2,
+      "avg_ret": -2.4,
+      "hit_rate": 0.0,
+      "n": 3,
+      "best_lag": "1d",
+      "reliable": true
     },
     {
       "code": "079430",
@@ -3075,26 +3245,6 @@
       "reliable": true
     },
     {
-      "code": "326030",
-      "name": "SK바이오팜",
-      "score": -1.97,
-      "avg_ret": -3.93,
-      "hit_rate": 0.0,
-      "n": 3,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
-      "code": "034730",
-      "name": "SK",
-      "score": -1.97,
-      "avg_ret": -3.93,
-      "hit_rate": 0.0,
-      "n": 3,
-      "best_lag": "1d",
-      "reliable": true
-    },
-    {
       "code": "017960",
       "name": "한국카본",
       "score": -2.35,
@@ -3103,6 +3253,26 @@
       "n": 1,
       "best_lag": "1d",
       "reliable": false
+    },
+    {
+      "code": "326030",
+      "name": "SK바이오팜",
+      "score": -2.35,
+      "avg_ret": -4.69,
+      "hit_rate": 0.0,
+      "n": 3,
+      "best_lag": "1d",
+      "reliable": true
+    },
+    {
+      "code": "034730",
+      "name": "SK",
+      "score": -2.35,
+      "avg_ret": -4.69,
+      "hit_rate": 0.0,
+      "n": 3,
+      "best_lag": "1d",
+      "reliable": true
     }
   ],
   "2차전지": [
@@ -3113,7 +3283,7 @@
       "avg_ret": 10.49,
       "hit_rate": 1.0,
       "n": 1,
-      "best_lag": "3d",
+      "best_lag": "5d",
       "reliable": false
     },
     {
@@ -3141,6 +3311,26 @@
       "name": "톱텍",
       "score": -0.11,
       "avg_ret": -0.22,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "010580",
+      "name": "에스엠벡셀",
+      "score": -2.06,
+      "avg_ret": -4.13,
+      "hit_rate": 0.0,
+      "n": 1,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "041510",
+      "name": "에스엠",
+      "score": -2.06,
+      "avg_ret": -4.13,
       "hit_rate": 0.0,
       "n": 1,
       "best_lag": "1d",
@@ -3199,31 +3389,31 @@
       "reliable": false
     },
     {
-      "code": "052690",
-      "name": "한전기술",
-      "score": 7.53,
-      "avg_ret": 7.53,
-      "hit_rate": 1.0,
-      "n": 2,
-      "best_lag": "3d",
-      "reliable": false
-    },
-    {
-      "code": "015760",
-      "name": "한전",
-      "score": 4.07,
-      "avg_ret": 4.87,
+      "code": "000720",
+      "name": "현대건설",
+      "score": 3.37,
+      "avg_ret": 4.03,
       "hit_rate": 0.67,
       "n": 3,
       "best_lag": "1d",
       "reliable": true
     },
     {
-      "code": "000720",
-      "name": "현대건설",
-      "score": 3.37,
-      "avg_ret": 4.03,
-      "hit_rate": 0.67,
+      "code": "052690",
+      "name": "한전기술",
+      "score": 2.64,
+      "avg_ret": 3.52,
+      "hit_rate": 0.5,
+      "n": 2,
+      "best_lag": "1d",
+      "reliable": false
+    },
+    {
+      "code": "015760",
+      "name": "한전",
+      "score": 1.46,
+      "avg_ret": 2.19,
+      "hit_rate": 0.33,
       "n": 3,
       "best_lag": "1d",
       "reliable": true
